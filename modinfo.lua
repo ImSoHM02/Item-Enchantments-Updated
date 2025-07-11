@@ -1,6 +1,9 @@
 description = 
 [[
-
+-V1.0-
+Updated code and fixed bugs
+Added toggles for each Enchantment in the settings
+Added a toggle to change how Enchantments are acquired. "All Sources" is the same as the orignal. "Drops & World Only" Enchantments only come from mob drops or spawned world items.
 ]]
 
 name                        = "Item Enchantments - Updated"
