@@ -6,6 +6,10 @@ GLOBAL.STRINGS.CHARACTERS.GENERIC.DESCRIBE.MOD_CLEANER = "I can disenchant items
 
 GLOBAL.STRINGS.ACTIONS.MOD_CLEAN = "Disenchant"
 GLOBAL.STRINGS.ACTIONS.MOD_DISASSEMBLE = "Disassemble"
+GLOBAL.STRINGS.ACTIONS.MOD_APPLY_SCROLL = "Inscribe"
+
+GLOBAL.STRINGS.NAMES.ENCHANTEDPAPYRUS = "Enchanted Papyrus"
+GLOBAL.STRINGS.CHARACTERS.GENERIC.DESCRIBE.ENCHANTEDPAPYRUS = "It remembers an enchantment for later."
 
 STRINGS.MODIFIER_RARITIES = {
     WORST = "Worst",
@@ -74,11 +78,6 @@ STRINGS.MODIFIERS.TOUGHNESS_2 = {
 	DESC = "-50% Durability usage.",
 }
 
-STRINGS.MODIFIERS.WEAKNESS_2 = {
-	PREFIX = "Fragile",
-	DESC = "+50% Durability usage.",
-}
-
 STRINGS.MODIFIERS.ICEY_THORNS = {
 	PREFIX = "Freezing",
 	DESC = "Damage taken has a chance to cool the attacker (Doesn't effect wearer in anyway)",
@@ -92,11 +91,6 @@ STRINGS.MODIFIERS.FIERY_THORNS = {
 STRINGS.MODIFIERS.TOUGHNESS_X = {
 	PREFIX = "Unbreakable",
 	DESC = "Infinite Durability",
-}
-
-STRINGS.MODIFIERS.WEAKNESS_1 = {
-	PREFIX = "Weak",
-	DESC = "+25% Durability usage.",
 }
 
 STRINGS.MODIFIERS.RESISTANCE_2 = {
@@ -114,11 +108,6 @@ STRINGS.MODIFIERS.STURDY_1 = {
 	DESC = "-25% Durability usage.",
 }
 
-STRINGS.MODIFIERS.FRAGILE_1 = {
-	PREFIX = "Weak",
-	DESC = "+25% Durability usage.",
-}
-
 STRINGS.MODIFIERS.RESOURCELUST = {
 	PREFIX = "Resource-hungry",
 	DESC = "Destruction dealt has a chance of slightly repairing the tool depending on destruction streak.",
@@ -132,11 +121,6 @@ STRINGS.MODIFIERS.BLOODLUST = {
 STRINGS.MODIFIERS.STURDY_X = {
 	PREFIX = "Unbreakable",
 	DESC = "This item will never degrade."
-}
-
-STRINGS.MODIFIERS.FRAGILE_2 = {
-	PREFIX = "Fragile",
-	DESC = "+50% Durability usage.",
 }
 
 STRINGS.MODIFIERS.STURDY_2 = {
@@ -182,6 +166,11 @@ STRINGS.MODIFIERS.GHOSTSTRIKE = {
 STRINGS.MODIFIERS.LIFESTEAL = {
 	PREFIX = "Lifestealing",
 	DESC = "Damage dealt has a chance to heal the player slightly.",
+}
+
+STRINGS.MODIFIERS.HEMORRHAGE = {
+	PREFIX = "Hemorrhaging",
+	DESC = "Hits apply stacking bleed damage over time.",
 }
 
 STRINGS.MODIFIERS.ICEY = {
@@ -249,6 +238,16 @@ STRINGS.MODIFIERS.FREEZER = {
 	DESC = "Anything inside this container perishes slower."
 }
 
+STRINGS.MODIFIERS.SUBZERO = {
+	PREFIX = "Sub-zero",
+	DESC = "This fridge keeps food fresh for far longer."
+}
+
+STRINGS.MODIFIERS.DESICCATING = {
+	PREFIX = "Desiccating",
+	DESC = "Drying racks finish hanging food much faster."
+}
+
 STRINGS.MODIFIERS.LIGHTWEIGHT = {
 	PREFIX = "Lightweight",
 	DESC = "Walking with this item equipped is easier."
@@ -274,14 +273,14 @@ STRINGS.MODIFIERS.ELECTRIC_THORNS = {
 	DESC = "Damage dealt will cause the attacker to get hit by lightning and get teleported away. (Only when an orb is present)"
 }
 
-STRINGS.MODIFIERS.MINDFIZZLER = {
-	PREFIX = "Moonwalker's",
-	DESC = "Movement controls are inverted."
-}
-
 STRINGS.MODIFIERS.FIREPROOF = {
 	PREFIX = "Fireproof",
 	DESC = "Resistant to fire."
+}
+
+STRINGS.MODIFIERS.FLEETFOOTED = {
+	PREFIX = "Fleet-footed",
+	DESC = "Cane walking speed is increased even further."
 }
 
 STRINGS.MODIFIERS.UNWITHERING = {

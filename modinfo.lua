@@ -1,6 +1,14 @@
 description = 
 [[
--V1.0-
+
+Version 1.1 - Enchanted Scrolls & Forging
+- Boss kills now hand out an Enchanted Papyrus if no eligible gear is found, and bosses use a world indicator.
+- Added Hemorrhaging (bleed-on-hit) alongside new chilling Sub-Zero variants.
+- Scrolls can reroll existing enchanted items.
+- Disenchanting or disassembling enchanted gear yields an Enchanted Papyrus; combine two matching scrolls to upgrade to the next tier.
+- Removed Bad/Worst rarities
+
+Version 1.0 - Refresh & Toggles
 Updated code and fixed bugs
 Added toggles for each Enchantment in the settings
 Added a toggle to change how Enchantments are acquired. "All Sources" is the same as the orignal. "Drops & World Only" Enchantments only come from mob drops or spawned world items.
@@ -8,7 +16,7 @@ Added a toggle to change how Enchantments are acquired. "All Sources" is the sam
 
 name                        = "Item Enchantments - Updated"
 author                      = "Im So HM02 (Original by Aquaterion)"
-version                     = "1.0"
+version                     = "1.1"
 forumthread                 = ""
 icon                        = "modicon.tex"
 icon_atlas                  = "modicon.xml"
@@ -132,6 +140,13 @@ configuration_options =
         default = true,
     },
     {
+        name = "enable_hemorrhaging",
+        label = "Enable Hemorrhaging",
+        hover = "Hits apply a stacking bleed that deals damage over time",
+        options = TrueFalse,
+        default = true,
+    },
+    {
         name = "enable_everlasting",
         label = "Enable Everlasting",
         hover = "Infinite Durability",
@@ -142,6 +157,20 @@ configuration_options =
         name = "enable_chilly",
         label = "Enable Chilly",
         hover = "Anything inside this container perishes slower",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_subzero",
+        label = "Enable Sub-zero",
+        hover = "Fridges perishing reduction is increased even further",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_desiccating",
+        label = "Enable Desiccating",
+        hover = "Drying racks finish their batches faster",
         options = TrueFalse,
         default = true,
     },
@@ -328,9 +357,9 @@ configuration_options =
         default = true,
     },
     {
-        name = "enable_weak",
-        label = "Enable Weak",
-        hover = "+25% Durability usage",
+        name = "enable_fleetfooted",
+        label = "Enable Fleet-footed",
+        hover = "Cane enchantments give an extra burst of walking speed",
         options = TrueFalse,
         default = true,
     },
@@ -338,13 +367,6 @@ configuration_options =
         name = "enable_dull",
         label = "Enable Dull",
         hover = "-10% Damage dealt",
-        options = TrueFalse,
-        default = true,
-    },
-    {
-        name = "enable_inefficient",
-        label = "Enable Inefficient",
-        hover = "+10% Fuel usage",
         options = TrueFalse,
         default = true,
     },
@@ -363,13 +385,6 @@ configuration_options =
         default = true,
     },
     {
-        name = "enable_fragile",
-        label = "Enable Fragile",
-        hover = "+50% Durability usage",
-        options = TrueFalse,
-        default = true,
-    },
-    {
         name = "enable_blunt",
         label = "Enable Blunt",
         hover = "-30% Damage dealt",
@@ -377,23 +392,9 @@ configuration_options =
         default = true,
     },
     {
-        name = "enable_impotent",
-        label = "Enable Impotent",
-        hover = "+25% Fuel usage",
-        options = TrueFalse,
-        default = true,
-    },
-    {
         name = "enable_slowing",
         label = "Enable Slowing",
         hover = "Damage dealt will cause the attacker to run slower for a short time",
-        options = TrueFalse,
-        default = true,
-    },
-    {
-        name = "enable_moonwalkers",
-        label = "Enable Moonwalker's",
-        hover = "Movement controls are inverted",
         options = TrueFalse,
         default = true,
     },

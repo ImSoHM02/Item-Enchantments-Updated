@@ -6,24 +6,18 @@ local function GetEnchantmentConfigKey(modname)
         ["sturdy_1"] = "MODIFIER_ENABLE_STEADY",
         ["sturdy_2"] = "MODIFIER_ENABLE_STURDY",
         ["sturdy_x"] = "MODIFIER_ENABLE_UNBREAKABLE",
-        ["fragile_1"] = "MODIFIER_ENABLE_WEAK",
-        ["fragile_2"] = "MODIFIER_ENABLE_FRAGILE",
         ["bloodlust"] = "MODIFIER_ENABLE_VAMPIRIC",
         ["resourcelust"] = "MODIFIER_ENABLE_RESOURCE_HUNGRY",
         
         -- Fueled enchantments
         ["efficiency_1"] = "MODIFIER_ENABLE_EFFICIENT",
         ["efficiency_2"] = "MODIFIER_ENABLE_ECONOMICAL",
-        ["inefficiency_1"] = "MODIFIER_ENABLE_INEFFICIENT",
-        ["inefficiency_2"] = "MODIFIER_ENABLE_IMPOTENT",
         ["solar"] = "MODIFIER_ENABLE_SOLAR",
         
         -- Armor enchantments
         ["toughness_1"] = "MODIFIER_ENABLE_STEADY",
         ["toughness_2"] = "MODIFIER_ENABLE_STURDY",
         ["toughness_x"] = "MODIFIER_ENABLE_EVERLASTING",
-        ["weakness_1"] = "MODIFIER_ENABLE_WEAK",
-        ["weakness_2"] = "MODIFIER_ENABLE_FRAGILE",
         ["resistance_1"] = "MODIFIER_ENABLE_RESISTANT",
         ["resistance_2"] = "MODIFIER_ENABLE_PROTECTIVE",
         ["resistance_x"] = "MODIFIER_ENABLE_UNTOUCHABLE",
@@ -45,6 +39,7 @@ local function GetEnchantmentConfigKey(modname)
         ["lifesteal"] = "MODIFIER_ENABLE_LIFESTEALING",
         ["telecoward"] = "MODIFIER_ENABLE_TELEPOOFING",
         ["ghoststrike"] = "MODIFIER_ENABLE_GHOST_STRIKE",
+        ["hemorrhage"] = "MODIFIER_ENABLE_HEMORRHAGING",
         ["rushing"] = "MODIFIER_ENABLE_RUSHING",
         ["slowing"] = "MODIFIER_ENABLE_SLOWING",
         
@@ -63,7 +58,9 @@ local function GetEnchantmentConfigKey(modname)
         ["freezer"] = "MODIFIER_ENABLE_CHILLY",
         ["fireproof"] = "MODIFIER_ENABLE_FIREPROOF",
         ["unwithering"] = "MODIFIER_ENABLE_UNWITHERING",
-        
+        ["subzero"] = "MODIFIER_ENABLE_SUBZERO",
+        ["desiccating"] = "MODIFIER_ENABLE_DESICCATING",
+
         -- Modifier cleaner enchantments
         ["repairer"] = "MODIFIER_ENABLE_TINKERERS",
         ["infinite"] = "MODIFIER_ENABLE_REALLOCATING",
@@ -72,7 +69,7 @@ local function GetEnchantmentConfigKey(modname)
         -- Special equippable enchantments
         ["soulbound"] = "MODIFIER_ENABLE_LOYAL",
         ["telesensitive"] = "MODIFIER_ENABLE_TELEPOOFING",
-        ["mindfizzler"] = "MODIFIER_ENABLE_MOONWALKERS",
+        ["fleetfooted"] = "MODIFIER_ENABLE_FLEETFOOTED",
         ["mindascender"] = "MODIFIER_ENABLE_MASTER_TINKERERS",
         ["mindtranscender"] = "MODIFIER_ENABLE_MASTER_TINKERERS",
     }
@@ -112,7 +109,7 @@ function GetAllPossibleModifiers(inst, rarities, only_rarities)
     end
 end
 
-local sortedrarities = { "mythic", "legendary", "epic", "rare", "good", "bad", "worst"}
+local sortedrarities = { "mythic", "legendary", "epic", "rare", "good" }
 
 function GetBestPossibleRarity(inst, rarity)--if inst = table of insts, returns best rarity of all those items, as well as filtered table with only the items that have the best rarity available
     if inst == nil then return nil end
@@ -236,7 +233,7 @@ function Modifier:GenerateFromTable(rarities)
     self:GenerateType(weighted_random_choice(rarities))
 end
 
-function Modifier:GenerateType(rarity)--worst,bad,good,rare,epic,legendary,mythic
+function Modifier:GenerateType(rarity)--good,rare,epic,legendary,mythic
     if rarity == nil then return end
     local oldmodifier = self.mod_name
 

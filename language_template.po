@@ -134,14 +134,6 @@ msgstr "Sturdy"
 msgid "-50% Durability usage."
 msgstr "-50% Durability usage."
 
-#: STRINGS.MODIFIERS.WEAKNESS_2.PREFIX
-msgid "Fragile"
-msgstr "Fragile"
-
-#: STRINGS.MODIFIERS.WEAKNESS_2.DESC
-msgid "+50% Durability usage."
-msgstr "+50% Durability usage."
-
 #: STRINGS.MODIFIERS.ICEY_THORNS.PREFIX
 msgid "Freezing"
 msgstr "Freezing"
@@ -165,14 +157,6 @@ msgstr "Unbreakable"
 #: STRINGS.MODIFIERS.TOUGHNESS_X.DESC
 msgid "Infinite Durability"
 msgstr "Infinite Durability"
-
-#: STRINGS.MODIFIERS.WEAKNESS_1.PREFIX
-msgid "Weak"
-msgstr "Weak"
-
-#: STRINGS.MODIFIERS.WEAKNESS_1.DESC
-msgid "+25% Durability usage."
-msgstr "+25% Durability usage."
 
 #: STRINGS.MODIFIERS.RESISTANCE_2.PREFIX
 msgid "Protective"
@@ -198,14 +182,6 @@ msgstr "Steady"
 msgid "-25% Durability usage."
 msgstr "-25% Durability usage."
 
-#: STRINGS.MODIFIERS.FRAGILE_1.PREFIX
-msgid "Weak"
-msgstr "Weak"
-
-#: STRINGS.MODIFIERS.FRAGILE_1.DESC
-msgid "+25% Durability usage."
-msgstr "+25% Durability usage."
-
 #: STRINGS.MODIFIERS.RESOURCELUST.PREFIX
 msgid "Resource-hungry"
 msgstr "Resource-hungry"
@@ -229,14 +205,6 @@ msgstr "Unbreakable"
 #: STRINGS.MODIFIERS.STURDY_X.DESC
 msgid "Infinite Durability."
 msgstr "Infinite Durability."
-
-#: STRINGS.MODIFIERS.FRAGILE_2.PREFIX
-msgid "Fragile"
-msgstr "Fragile"
-
-#: STRINGS.MODIFIERS.FRAGILE_2.DESC
-msgid "+50% Durability usage."
-msgstr "+50% Durability usage."
 
 #: STRINGS.MODIFIERS.STURDY_2.PREFIX
 msgid "Sturdy"
@@ -477,6 +445,14 @@ msgstr "Fireproof"
 #: STRINGS.MODIFIERS.FIREPROOF.DESC
 msgid "Resistant to fire."
 msgstr "Resistant to fire."
+
+#: STRINGS.MODIFIERS.FLEETFOOTED.PREFIX
+msgid "Fleet-footed"
+msgstr "Fleet-footed"
+
+#: STRINGS.MODIFIERS.FLEETFOOTED.DESC
+msgid "Cane walking speed is increased even further."
+msgstr "Cane walking speed is increased even further."
 
 #: STRINGS.MODIFIERS.UNWITHERING.PREFIX
 msgid "Unwithering"

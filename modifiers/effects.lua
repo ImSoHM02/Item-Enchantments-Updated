@@ -69,6 +69,85 @@ local function effect_lifesteal(inst, weapon, target)
 	end
 end
 
+local BLEED_MAX_STACKS = 5
+local BLEED_DURATION = 6
+local BLEED_TICK_PERIOD = 1
+
+local function ClearBleed(target)
+	if target == nil then
+		return
+	end
+	if target.modifier_bleed_task then
+		target.modifier_bleed_task:Cancel()
+		target.modifier_bleed_task = nil
+	end
+	target.modifier_bleed_stacks = nil
+	target.modifier_bleed_expires = nil
+	target.modifier_bleed_source = nil
+	target.modifier_bleed_weapon = nil
+end
+
+local function TickBleed(target)
+	if target == nil or target.components == nil or target.components.health == nil then
+		ClearBleed(target)
+		return
+	end
+	if target.components.health:IsDead() then
+		ClearBleed(target)
+		return
+	end
+
+	local expires = target.modifier_bleed_expires or 0
+	if expires <= 0 or GLOBAL.GetTime() > expires then
+		ClearBleed(target)
+		return
+	end
+
+	local stacks = target.modifier_bleed_stacks or 0
+	if stacks <= 0 then
+		ClearBleed(target)
+		return
+	end
+
+	local dmg = 1.5 + (stacks - 1) * 0.75
+	local source = target.modifier_bleed_source
+	local weapon = target.modifier_bleed_weapon
+
+	if target.components.combat and source and source:IsValid() then
+		target.components.combat:GetAttacked(source, dmg, weapon)
+	elseif target.components.health then
+		target.components.health:DoDelta(-dmg, nil, weapon)
+	end
+end
+
+local function ApplyBleed(target, source, weapon)
+	if target == nil or target.components == nil or target.components.health == nil then
+		return
+	end
+	if target.components.health:IsDead() then
+		return
+	end
+	if target:HasTag("player") and not GLOBAL.TheNet:GetPVPEnabled() then
+		return
+	end
+
+	target.modifier_bleed_stacks = math.min(BLEED_MAX_STACKS, (target.modifier_bleed_stacks or 0) + 1)
+	target.modifier_bleed_expires = GLOBAL.GetTime() + BLEED_DURATION
+	target.modifier_bleed_source = source
+	target.modifier_bleed_weapon = weapon
+
+	if target.modifier_bleed_task == nil then
+		target.modifier_bleed_task = target:DoPeriodicTask(BLEED_TICK_PERIOD, TickBleed)
+	end
+end
+
+local function effect_hemorrhage(inst, weapon, target)
+	if target == nil then
+		return
+	end
+	ApplyBleed(target, inst, weapon)
+end
+
 local function walkable_tile(tile)
 	if tile == nil or tile == GROUND.IMPASSABLE or tile == GROUND.INVALID or (tile >= GROUND.OCEAN_START and tile <= GROUND.OCEAN_END ) then
 		return false
@@ -501,48 +580,22 @@ GLOBAL.modifier_effects.finiteuses = {
 		end,
 		rarity = "rare",
 	},
-	sturdy_x = {
-		checkfn = function(inst)
-			return not inst.components.fertilizer and not inst.components.sewing and not string.find(inst.prefab, "rifle")--bucket o' poop because super op with this otherwise
-		end,
-		fn = function(inst)
-			if inst and (inst.components.finiteuses or inst.components.armor) then
-				inst.modifier_use = 0--100% less use
-			end
-		end,
-		unfn = function(inst)
-			if inst and (inst.components.finiteuses or inst.components.armor) then
-				inst.modifier_use = nil
-			end
-		end,
-		rarity = "mythic",
-	},
-	fragile_1 = {
-		fn = function(inst)
-			if inst and (inst.components.finiteuses or inst.components.armor) then
-				inst.modifier_use = 1.25--25% more use
-			end
-		end,
-		unfn = function(inst)
-			if inst and (inst.components.finiteuses or inst.components.armor) then
-				inst.modifier_use = nil
-			end
-		end,
-		rarity = "bad",
-	},
-	fragile_2 = {
-		fn = function(inst)
-			if inst and (inst.components.finiteuses or inst.components.armor) then
-				inst.modifier_use = 1.5--50% more use
-			end
-		end,
-		unfn = function(inst)
-			if inst and (inst.components.finiteuses or inst.components.armor) then
-				inst.modifier_use = nil
-			end
-		end,
-		rarity = "worst",
-	},
+		sturdy_x = {
+			checkfn = function(inst)
+				return not inst.components.fertilizer and not inst.components.sewing and not string.find(inst.prefab, "rifle")--bucket o' poop because super op with this otherwise
+			end,
+			fn = function(inst)
+				if inst and (inst.components.finiteuses or inst.components.armor) then
+					inst.modifier_use = 0--100% less use
+				end
+			end,
+			unfn = function(inst)
+				if inst and (inst.components.finiteuses or inst.components.armor) then
+					inst.modifier_use = nil
+				end
+			end,
+			rarity = "mythic",
+		},
 	bloodlust = {
 		checkfn = function(inst)
 			return inst.components.weapon ~= nil and (inst.modifier_use == nil or inst.modifier_use ~= 0) and inst.components.tool == nil and inst.components.fishingrod == nil--effect also requires item to be weapon, and not infinite durability
@@ -597,38 +650,20 @@ GLOBAL.modifier_effects.fueled = {
 		end,
 		rarity = "good",
 	},
-	efficiency_2 = {
-		fn = function(inst)
-			inst.modifier_use = 0.75--25% less use
-		end,
-		unfn = function(inst)
-			inst.modifier_use = nil
-		end,
-		rarity = "rare",
-	},
-	inefficiency_1 = {
-		fn = function(inst)
-			inst.modifier_use = 1.1--10% more use
-		end,
-		unfn = function(inst)
-			inst.modifier_use = nil
-		end,
-		rarity = "bad",
-	},
-	inefficiency_2 = {
-		fn = function(inst)
-			inst.modifier_use = 1.25--25% more use
-		end,
-		unfn = function(inst)
-			inst.modifier_use = nil
-		end,
-		rarity = "worst",
-	},
-	solar = {
-		checkfn = function(inst)
-			return inst.components.fueled.accepting and GLOBAL.table.contains(solarfueltypes, inst.components.fueled.fueltype)
-		end,
-		fn = function(inst)
+		efficiency_2 = {
+			fn = function(inst)
+				inst.modifier_use = 0.75--25% less use
+			end,
+			unfn = function(inst)
+				inst.modifier_use = nil
+			end,
+			rarity = "rare",
+		},
+		solar = {
+			checkfn = function(inst)
+				return inst.components.fueled.accepting and GLOBAL.table.contains(solarfueltypes, inst.components.fueled.fueltype)
+			end,
+			fn = function(inst)
 			insertfn(inst, "modifier_consuming_fns", effect_solar)
 		end,
 		unfn = function(inst)
@@ -654,16 +689,6 @@ GLOBAL.modifier_effects.armor = { --ideas: selfrepairing, selfdegrading, player 
 		unfn = GLOBAL.modifier_effects.finiteuses.sturdy_x.unfn,
 		rarity = "mythic",
 	},	
-	weakness_1 = {
-		fn = GLOBAL.modifier_effects.finiteuses.fragile_1.fn,
-		unfn = GLOBAL.modifier_effects.finiteuses.fragile_1.unfn,
-		rarity = "bad",
-	},
-	weakness_2 = {
-		fn = GLOBAL.modifier_effects.finiteuses.fragile_2.fn,
-		unfn = GLOBAL.modifier_effects.finiteuses.fragile_2.unfn,
-		rarity = "worst",
-	},
 	resistance_1 = {
 		fn = function(inst)
 			inst.modifier_resist = 0.1--10% dmg reduction
@@ -740,7 +765,7 @@ GLOBAL.modifier_effects.armor = { --ideas: selfrepairing, selfdegrading, player 
 		unfn = function(inst)
 			inst.components.equippable.walkspeedmult = 1
 		end,
-		rarity = "bad"
+		rarity = "rare"
 	},
 	electric_thorns = {
 		checkfn = function(inst)
@@ -798,26 +823,6 @@ GLOBAL.modifier_effects.weapon = {
 		end,
 		rarity = "epic",
 	},
-	dulness_1 = {
-		checkfn = defaultdmgcheck,
-		fn = function(inst)
-			inst.modifier_dmg = -0.1--10% debuff
-		end,
-		unfn = function(inst)
-			inst.modifier_dmg = nil
-		end,
-		rarity = "bad",
-	},
-	dulness_2 = {
-		checkfn = defaultdmgcheck,
-		fn = function(inst)
-			inst.modifier_dmg = -0.25--25% debuff
-		end,
-		unfn = function(inst)
-			inst.modifier_dmg = nil
-		end,
-		rarity = "worst",
-	},
 	fiery = {
 		checkfn = function(inst)
 			return not inst:HasTag("lighter") and not inst:HasTag("rangedlighter") and not inst:HasTag("extinguisher")--no existing fire/ice effect weapon should get this
@@ -850,6 +855,16 @@ GLOBAL.modifier_effects.weapon = {
 			removefn(inst, "modifier_wep_fns", effect_lifesteal)
 		end,
 		rarity = "legendary",
+	},
+	hemorrhage = {
+		checkfn = defaultdmgcheck,
+		fn = function(inst)
+			insertfn(inst, "modifier_wep_fns", effect_hemorrhage)
+		end,
+		unfn = function(inst)
+			removefn(inst, "modifier_wep_fns", effect_hemorrhage)
+		end,
+		rarity = "rare",
 	},
 	telecoward = {
 		fn = function(inst)
@@ -890,19 +905,7 @@ GLOBAL.modifier_effects.weapon = {
 		end,
 		rarity = "rare",
 	},
-	slowing = {
-		checkfn = function(inst)
-			return inst.components.equippable and (inst.components.equippable.walkspeedmult == nil or inst.components.equippable.walkspeedmult == 1)
-		end,
-		fn = function(inst)
-			insertfn(inst, "modifier_wep_fns", effect_slowing)
-		end,
-		unfn = function(inst)
-			removefn(inst, "modifier_wep_fns", effect_slowing)
-		end,
-		rarity = "worst",
 	}
-}
 
 GLOBAL.modifier_effects.instrument = {
 	regensong = {
@@ -967,7 +970,7 @@ GLOBAL.modifier_effects.projectile = {
 			inst.components.projectile:SetSpeed(inst.oldspeed)
 			inst.oldspeed = nil
 		end,
-		rarity = "bad",
+		rarity = "rare",
 	},
 	collision_projectile = {
 		checkfn = function(inst)
@@ -997,6 +1000,35 @@ GLOBAL.modifier_effects.container = {
 			inst:RemoveTag("fridge")
 		end,
 		rarity = "legendary",
+	},
+	subzero = {
+		checkfn = function(inst)
+			return inst:HasTag("fridge")
+		end,
+		fn = function(inst)
+			if inst.components.preserver == nil then
+				inst:AddComponent("preserver")
+				inst.modifier_preserver_added = true
+			end
+			if inst.components.preserver then
+				if inst.modifier_preserver_prev == nil then
+					inst.modifier_preserver_prev = inst.components.preserver:GetPerishRateMultiplier()
+				end
+				inst.components.preserver:SetPerishRateMultiplier(TUNING.PERISH_FRIDGE_MULT * 0.5)
+			end
+		end,
+		unfn = function(inst)
+			if inst.modifier_preserver_added then
+				if inst.components.preserver then
+					inst:RemoveComponent("preserver")
+				end
+				inst.modifier_preserver_added = nil
+			elseif inst.components.preserver and inst.modifier_preserver_prev ~= nil then
+				inst.components.preserver:SetPerishRateMultiplier(inst.modifier_preserver_prev)
+			end
+			inst.modifier_preserver_prev = nil
+		end,
+		rarity = "rare",
 	},
 	fireproof = {
 		checkfn = function(inst)
@@ -1037,6 +1069,20 @@ GLOBAL.modifier_effects.container = {
 		rarity = "rare"
 	}
 }
+
+GLOBAL.modifier_effects.dryingrack = {
+	desiccating = {
+		fn = function(inst)
+			inst.modifier_drying_speedmult = 0.5
+		end,
+		unfn = function(inst)
+			inst.modifier_drying_speedmult = nil
+		end,
+		rarity = "rare",
+	},
+}
+
+GLOBAL.modifier_effects.dryer = GLOBAL.modifier_effects.dryingrack
 
 GLOBAL.modifier_effects.modifier_cleaner = {
 	repairer = {
@@ -1164,17 +1210,26 @@ GLOBAL.modifier_effects.equippable = {--ideas: sanity/hunger/temperature effects
 		end,
 		rarity = "epic",
 	},
-	mindfizzler = {
+	fleetfooted = {
 		checkfn = function(inst)
-			return inst.components.equippable.equipslot == GLOBAL.EQUIPSLOTS.HEAD and (inst.components.equippable.walkspeedmult == nil or inst.components.equippable.walkspeedmult == 1)
+			return inst.prefab == "cane" and inst.components.equippable ~= nil
 		end,
 		fn = function(inst)
-			inst.components.equippable.walkspeedmult = 0
+			if inst.components.equippable then
+				inst.modifier_fleetfoot_prev = inst.components.equippable.walkspeedmult or 1
+				local base = inst.modifier_fleetfoot_prev > 0 and inst.modifier_fleetfoot_prev or 1
+				inst.components.equippable.walkspeedmult = base + 0.15
+			end
 		end,
 		unfn = function(inst)
-			inst.components.equippable.walkspeedmult = 1
+			if inst.components.equippable then
+				if inst.modifier_fleetfoot_prev ~= nil then
+					inst.components.equippable.walkspeedmult = inst.modifier_fleetfoot_prev
+				end
+			end
+			inst.modifier_fleetfoot_prev = nil
 		end,
-		rarity = "worst",
+		rarity = "rare",
 	},
 	mindascender = {
 		checkfn = function(inst)

@@ -3,35 +3,24 @@ local assets =
 	Asset("ANIM", "anim/modifier_orb.zip"),
 }
 local function OnLink(inst, rarity)
-    if rarity == "mythic" and inst:HasTag("playerghost") then
-        inst:PushEvent("respawnfromghost", { source = { name = "Mythicalness", components = {} } })
-    end
-    local items = {}
-    for k,v in pairs(inst.components.inventory.itemslots) do
-        if v then
-            table.insert(items, v)
-        end
-    end
-    for k,v in pairs(inst.components.inventory.equipslots) do
-        if v then
-            table.insert(items, v)
-        end
-    end
-    if inst.components.inventory:GetOverflowContainer() then
-        for k,v in pairs(inst.components.inventory:GetOverflowContainer().slots) do
-            if v then
-                table.insert(items, v)
-            end
-        end
-    end
-    local bestrarity, actualitems = GetBestPossibleRarity(items, rarity)
-    if bestrarity and bestrarity ~= "bad" and bestrarity ~= "worst" and GetTableSize(actualitems) > 0 then
-        local item = GetRandomItem(actualitems)
-        if item and item:IsValid() and item.components.modifier then--in case we managed to magically end up here without these
-            item.components.modifier:GenerateType(bestrarity)
-            return
-        end
-    end
+	if rarity == "mythic" and inst:HasTag("playerghost") then
+	    inst:PushEvent("respawnfromghost", { source = { name = "Mythicalness", components = {} } })
+	end
+	if rarity == nil or rarity == "" then
+		return
+	end
+
+	local scroll = SpawnPrefab("enchantedpapyrus")
+	if scroll and scroll.components.modifier_scroll then
+		scroll.components.modifier_scroll:SetRarity(rarity)
+		local success = inst.components ~= nil and inst.components.inventory and inst.components.inventory:GiveItem(scroll)
+		if not success then
+			local x, y, z = inst.Transform:GetWorldPosition()
+			scroll.Transform:SetPosition(x, y, z)
+		elseif inst.components.talker then
+			inst.components.talker:Say("I'll save this enchantment for later.")
+		end
+	end
 end
 
 local function OnSpawn(inst, target, rarity)
