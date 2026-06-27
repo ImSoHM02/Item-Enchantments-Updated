@@ -26,11 +26,32 @@ All options are exposed in `modinfo.lua`. Highlights:
 
 ## Changelog
 
-**Version 1.1 - Enchanted Scrolls**
+**Version 1.1 - Enchanted Scrolls & Forging**
 
-- Added the Enchanted Papyrus prefab, along with a “Inscribe” action to store and apply enchantments later.
-- Boss modifier orbs now spawn a scroll if the player lacks eligible gear, preventing wasted drops.
+- Boss kills now hand out an Enchanted Papyrus if no eligible gear is found, and bosses use a world indicator.
+- Added Hemorrhaging (bleed-on-hit) alongside new chilling Sub-Zero variants.
+- Scrolls can reroll existing enchanted items.
+- Disenchanting or disassembling enchanted gear yields an Enchanted Papyrus; combine two matching scrolls to upgrade to the next tier.
+- Removed Bad/Worst rarities.
+- Fixed planar damage being lost on every hit while the mod was active.
+- Damage enchantments (Pointy/Sharp/Razor-Sharp) now also boost the planar damage of planar weapons, not just their physical damage.
+- Fixed certain weapon attacks losing their range and position overrides.
 
 **Version 1.0 - Refresh & Toggles**
 
-- Updated Aquaterion’s original mod to the DST API 10 baseline, fixed bugs, and exposed config toggles for every enchantment.
+- Updated Aquaterion’s original mod to the DST API 10 baseline and fixed bugs.
+- Added enable/disable toggles for each enchantment in the settings.
+- Added an enchantment acquisition toggle: “All Sources” matches the original, while “Drops & World Only” limits enchantments to mob drops and spawned world items.
+
+[h1]Item Enchantments - Updated[/h1]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1306918089&searchtext=Item+Enchantments]Original by Aquaterion[/url]
+
+[b]This mod adds a chance for items to spawn with powerful (and not so powerful) enchantments.[/b]
+
+[h1]Latest Patch Notes:[/h1]
+[b]-V1.0-[/b]
+[list]
+[*]Updated code and fixed bugs
+[*]Added toggles for each Enchantment in the settings
+[*]Added a toggle to change how Enchantments are acquired. "All Sources" is the same as the orignal. "Drops & World Only" Enchantments only come from mob drops or spawned world items.
+[/list]

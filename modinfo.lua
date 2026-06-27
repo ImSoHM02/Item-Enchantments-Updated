@@ -7,6 +7,9 @@ Version 1.1 - Enchanted Scrolls & Forging
 - Scrolls can reroll existing enchanted items.
 - Disenchanting or disassembling enchanted gear yields an Enchanted Papyrus; combine two matching scrolls to upgrade to the next tier.
 - Removed Bad/Worst rarities
+- Fixed planar damage being lost on every hit while the mod was active.
+- Damage enchantments (Pointy/Sharp/Razor-sharp) now also boost the planar damage of planar weapons, not just their physical damage.
+- Fixed certain weapon attacks losing their range and position overrides.
 
 Version 1.0 - Refresh & Toggles
 Updated code and fixed bugs

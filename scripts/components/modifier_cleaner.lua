@@ -9,7 +9,7 @@ local function GiveScroll(target, rarity)
     if target == nil or rarity == nil then
         return
     end
-    local scroll = GLOBAL.SpawnPrefab("enchantedpapyrus")
+    local scroll = SpawnPrefab("enchantedpapyrus")
     if scroll and scroll.components.modifier_scroll then
         scroll.components.modifier_scroll:SetRarity(rarity)
         if target.components and target.components.inventory and target.components.inventory:GiveItem(scroll) then

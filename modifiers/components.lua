@@ -370,15 +370,25 @@ end)
 
 AddComponentPostInit("combat", function(self)
 	local oldDoAttack = self.DoAttack
-	function self:DoAttack(target_override, weapon, projectile, stimuli, instancemult)
+	function self:DoAttack(target_override, weapon, projectile, stimuli, instancemult, instrangeoverride, instpos)
 		local targ = target_override or self.target
 		local wep = weapon or self:GetWeapon()
 		if wep and wep:HasTag("modifier_ghoststrike_oncooldown") then return end--if on cooldown, stop
 
+		local planar = nil
 		if wep and wep.components.modifier and wep.modifier_dmg then
-			instancemult = (instancemult or 1) + wep.modifier_dmg			
+			instancemult = (instancemult or 1) + wep.modifier_dmg
+			--instancemult only scales physical damage; planar damage (spdamage) is passed through
+			--untouched by the engine, so scale the weapon's planardamage to match the buff.
+			planar = wep.components.planardamage
+			if planar then
+				planar:AddMultiplier("modifier_dmg", 1 + wep.modifier_dmg, "modifier_dmg")
+			end
 		end
-		oldDoAttack(self, target_override, weapon, projectile, stimuli, instancemult)
+		oldDoAttack(self, target_override, weapon, projectile, stimuli, instancemult, instrangeoverride, instpos)
+		if planar then--hit resolved synchronously inside oldDoAttack, safe to remove now
+			planar:RemoveMultiplier("modifier_dmg", "modifier_dmg")
+		end
 		if targ and wep and wep.components.modifier and wep.modifier_wep_fns and type(wep.modifier_wep_fns) == "table" then
 			for _each, mod_fn in pairs(wep.modifier_wep_fns) do
 				mod_fn(self.inst, wep, targ)
@@ -390,7 +400,7 @@ AddComponentPostInit("combat", function(self)
 	end
 
 	local oldGetAttacked = self.GetAttacked
-	function self:GetAttacked(attacker, damage, weapon, stimuli)
+	function self:GetAttacked(attacker, damage, weapon, stimuli, spdamage)
 		if self.inst.components.inventory and self.inst.components.inventory.equipslots and damage and damage > 0 then --no inventory = no effects, stop here
 			local totalresist = 0
 			for each, equipped in pairs(self.inst.components.inventory.equipslots) do
@@ -404,7 +414,7 @@ AddComponentPostInit("combat", function(self)
 				self.inst.components.inventory:ApplyDamage(olddamage - damage, attacker, weapon)
 			end
 		end
-		local result = oldGetAttacked(self, attacker, damage, weapon, stimuli)
+		local result = oldGetAttacked(self, attacker, damage, weapon, stimuli, spdamage)
 		if result and self.inst.components.inventory and self.inst.components.inventory.equipslots and attacker then --no inventory = no effects, stop here
 			for each, equipped in pairs(self.inst.components.inventory.equipslots) do
 				if equipped and equipped.modifier_reflect_fns and type(equipped.modifier_reflect_fns) == "table" then
