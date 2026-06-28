@@ -183,6 +183,41 @@ AddComponentAction("USEITEM", "inventoryitem", function(inst, doer, target, acti
 	end
 end)
 
+local function ConsolePlayer()
+	if GLOBAL.ConsoleCommandPlayer ~= nil then
+		local player = GLOBAL.ConsoleCommandPlayer()
+		if player ~= nil and player:IsValid() then
+			return player
+		end
+	end
+	if GLOBAL.ThePlayer ~= nil and GLOBAL.ThePlayer:IsValid() then
+		return GLOBAL.ThePlayer
+	end
+	if GLOBAL.AllPlayers ~= nil and #GLOBAL.AllPlayers > 0 then
+		for _, player in ipairs(GLOBAL.AllPlayers) do
+			if player ~= nil and player:IsValid() then
+				return player
+			end
+		end
+	end
+	return nil
+end
+
+local function GiveScroll(player, rarity)
+	player = player or ConsolePlayer()
+	if player == nil or player.components == nil or player.components.inventory == nil then
+		return
+	end
+	local scroll = GLOBAL.SpawnPrefab("enchantedpapyrus")
+	if scroll and scroll.components.modifier_scroll then
+		scroll.components.modifier_scroll:SetRarity(rarity)
+		if not player.components.inventory:GiveItem(scroll) then
+			local x, y, z = player.Transform:GetWorldPosition()
+			scroll.Transform:SetPosition(x, y, z)
+		end
+	end
+end
+
 local actDisassemble = AddAction("MOD_DISASSEMBLE", GLOBAL.STRINGS.ACTIONS.MOD_DISASSEMBLE, function(act)
 	if not act or not act.doer or not act.invobject then
 		return false
@@ -395,47 +430,12 @@ for _, prefab in ipairs(DRYINGRACK_PREFABS) do
 	end)
 end
 
-local function ConsolePlayer()
-	if GLOBAL.ConsoleCommandPlayer ~= nil then
-		local player = GLOBAL.ConsoleCommandPlayer()
-		if player ~= nil and player:IsValid() then
-			return player
-		end
-	end
-	if GLOBAL.ThePlayer ~= nil and GLOBAL.ThePlayer:IsValid() then
-		return GLOBAL.ThePlayer
-	end
-	if GLOBAL.AllPlayers ~= nil and #GLOBAL.AllPlayers > 0 then
-		for _, player in ipairs(GLOBAL.AllPlayers) do
-			if player ~= nil and player:IsValid() then
-				return player
-			end
-		end
-	end
-	return nil
-end
-
 local function RemoteExecIfClient(fnstr)
 	if GLOBAL.TheWorld ~= nil and not GLOBAL.TheWorld.ismastersim and GLOBAL.c_remote ~= nil then
 		GLOBAL.c_remote(fnstr)
 		return true
 	end
 	return false
-end
-
-local function GiveScroll(player, rarity)
-	player = player or ConsolePlayer()
-	if player == nil or player.components == nil or player.components.inventory == nil then
-		return
-	end
-	local scroll = GLOBAL.SpawnPrefab("enchantedpapyrus")
-	if scroll and scroll.components.modifier_scroll then
-		scroll.components.modifier_scroll:SetRarity(rarity)
-		if not player.components.inventory:GiveItem(scroll) then
-			local x, y, z = player.Transform:GetWorldPosition()
-			scroll.Transform:SetPosition(x, y, z)
-		end
-	end
 end
 
 GLOBAL.c_spawnscroll = function(rarity, count, player)

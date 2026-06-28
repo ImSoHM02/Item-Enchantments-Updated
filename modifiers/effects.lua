@@ -376,6 +376,15 @@ local function effect_tauntsong(inst, musician)
 	play_song(inst, musician, song)
 end
 
+local function effect_collisionproj_stop(inst, owner)
+	if not inst:IsValid() then return end
+	if inst.mod_collision then
+		inst.mod_collision:Cancel()
+		inst.mod_collision = nil
+	end
+	inst.mod_collision_targets = nil
+end
+
 local function effect_collisionproj_throw(inst, owner, target)
 	if not inst:IsValid() then return end
 	if inst.mod_collision then
@@ -392,15 +401,6 @@ local function effect_collisionproj_throw(inst, owner, target)
 			end
 		end
 	end)	
-end
-
-local function effect_collisionproj_stop(inst, owner)
-	if not inst:IsValid() then return end
-	if inst.mod_collision then
-		inst.mod_collision:Cancel()
-		inst.mod_collision = nil
-	end
-	inst.mod_collision_targets = nil
 end
 
 local function effect_rushing(inst, weapon, target, extra)
