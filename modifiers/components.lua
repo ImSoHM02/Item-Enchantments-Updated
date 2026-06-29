@@ -518,11 +518,12 @@ AddComponentPostInit("fueled", function(self)
 	end
 
 	local oldDoDelta = self.DoDelta
-	function self:DoDelta(amount)
-		if self.inst:HasTag("modified") and self.inst.modifier_use and amount < 0 then
+	function self:DoDelta(amount, doer)
+		--scale consumption only; let full drains (e.g. MakeEmpty's DoDelta(-currentfuel)) pass through
+		if self.inst:HasTag("modified") and self.inst.modifier_use and amount < 0 and -amount < self.currentfuel then
 			amount = -(-amount * self.inst.modifier_use)
 		end
-		oldDoDelta(self, amount)
+		oldDoDelta(self, amount, doer)
 	end
 end)
 
@@ -876,7 +877,7 @@ AddPrefabPostInitAny(function(inst)
 	end
 
 	if inst.sg and inst.components.combat and inst.components.combat.defaultdamage ~= 0 and inst.components.health then
-		if ((GLOBAL.TheWorld.state.cycles == 0 and GLOBAL.TheWorld.state.time < 0.01) or GLOBAL.TheWorld:GetTimeAlive() > 5) and math.random() <= 0.075 or (inst:HasTag("epic") and math.random() <= 0.1) then--0.75% chance/ epic 10% chance
+		if ((GLOBAL.TheWorld.state.cycles == 0 and GLOBAL.TheWorld.state.time < 0.01) or GLOBAL.TheWorld:GetTimeAlive() > 5) and math.random() <= 0.0075 or (inst:HasTag("epic") and math.random() <= 0.1) then--0.75% chance/ epic 10% chance
 			PickBossType(inst, "spawned")
 		end
 		inst.oldOnSave = inst.OnSave

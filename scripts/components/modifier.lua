@@ -1,7 +1,6 @@
 --GLOBAL FNS--
 -- Map internal enchantment names to configuration variable names
-local function GetEnchantmentConfigKey(modname)
-    local config_map = {
+local CONFIG_MAP = {
         -- Finiteuses enchantments
         ["sturdy_1"] = "MODIFIER_ENABLE_STEADY",
         ["sturdy_2"] = "MODIFIER_ENABLE_STURDY",
@@ -32,8 +31,6 @@ local function GetEnchantmentConfigKey(modname)
         ["sharpness_1"] = "MODIFIER_ENABLE_POINTY",
         ["sharpness_2"] = "MODIFIER_ENABLE_SHARP",
         ["sharpness_3"] = "MODIFIER_ENABLE_RAZOR_SHARP",
-        ["dulness_1"] = "MODIFIER_ENABLE_DULL",
-        ["dulness_2"] = "MODIFIER_ENABLE_BLUNT",
         ["fiery"] = "MODIFIER_ENABLE_FIERY",
         ["icey"] = "MODIFIER_ENABLE_ICEY",
         ["lifesteal"] = "MODIFIER_ENABLE_LIFESTEALING",
@@ -41,7 +38,6 @@ local function GetEnchantmentConfigKey(modname)
         ["ghoststrike"] = "MODIFIER_ENABLE_GHOST_STRIKE",
         ["hemorrhage"] = "MODIFIER_ENABLE_HEMORRHAGING",
         ["rushing"] = "MODIFIER_ENABLE_RUSHING",
-        ["slowing"] = "MODIFIER_ENABLE_SLOWING",
         
         -- Instrument enchantments
         ["regensong"] = "MODIFIER_ENABLE_SONG_OF_REGENERATION",
@@ -72,8 +68,10 @@ local function GetEnchantmentConfigKey(modname)
         ["fleetfooted"] = "MODIFIER_ENABLE_FLEETFOOTED",
         ["mindascender"] = "MODIFIER_ENABLE_MASTER_TINKERERS",
         ["mindtranscender"] = "MODIFIER_ENABLE_MASTER_TINKERERS",
-    }
-    return config_map[modname]
+}
+
+local function GetEnchantmentConfigKey(modname)
+    return CONFIG_MAP[modname]
 end
 
 function GetAllPossibleModifiers(inst, rarities, only_rarities)

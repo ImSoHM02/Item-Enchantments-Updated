@@ -138,19 +138,9 @@ STRINGS.MODIFIERS.SHARPNESS_1 = {
 	DESC = "+10% Damage dealt.",
 }
 
-STRINGS.MODIFIERS.DULNESS_1 = {
-	PREFIX = "Dull",
-	DESC = "-10% Damage dealt.",
-}
-
 STRINGS.MODIFIERS.TELECOWARD = {
 	PREFIX = "Telepoofing",
 	DESC = "Damage dealt has a chance of randomly teleporting the wearer somewhere close by.",
-}
-
-STRINGS.MODIFIERS.DULNESS_2 = {
-	PREFIX = "Blunt",
-	DESC = "-30% Damage dealt.",
 }
 
 STRINGS.MODIFIERS.SHARPNESS_2 = {
@@ -261,11 +251,6 @@ STRINGS.MODIFIERS.HEAVYWEIGHT = {
 STRINGS.MODIFIERS.RUSHING = {
 	PREFIX = "Rushing",
 	DESC = "Damage dealt will cause the attacker to run faster for a short time."
-}
-
-STRINGS.MODIFIERS.SLOWING = {
-	PREFIX = "Slowing",
-	DESC = "Damage dealt will cause the attacker to run slower for a short time."
 }
 
 STRINGS.MODIFIERS.ELECTRIC_THORNS = {

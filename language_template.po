@@ -230,14 +230,6 @@ msgstr "Pointy"
 msgid "+10% Damage dealt."
 msgstr "+10% Damage dealt."
 
-#: STRINGS.MODIFIERS.DULNESS_1.PREFIX
-msgid "Dull"
-msgstr "Dull"
-
-#: STRINGS.MODIFIERS.DULNESS_1.DESC
-msgid "-10% Damage dealt."
-msgstr "-10% Damage dealt."
-
 #: STRINGS.MODIFIERS.TELECOWARD.PREFIX
 msgid "Telepoofing"
 msgstr "Telepoofing"
@@ -245,14 +237,6 @@ msgstr "Telepoofing"
 #: STRINGS.MODIFIERS.TELECOWARD.DESC
 msgid "Damage dealt has a chance of randomly teleporting the wearer somewhere close by."
 msgstr "Damage dealt has a chance of randomly teleporting the wearer somewhere close by."
-
-#: STRINGS.MODIFIERS.DULNESS_2.PREFIX
-msgid "Blunt"
-msgstr "Blunt"
-
-#: STRINGS.MODIFIERS.DULNESS_2.DESC
-msgid "-30% Damage dealt."
-msgstr "-30% Damage dealt."
 
 #: STRINGS.MODIFIERS.SHARPNESS_2.PREFIX
 msgid "Sharp"
@@ -413,14 +397,6 @@ msgstr "Rushing"
 #: STRINGS.MODIFIERS.RUSHING.DESC
 msgid "Damage dealt will cause the attacker to run faster for a short time."
 msgstr "Damage dealt will cause the attacker to run faster for a short time."
-
-#: STRINGS.MODIFIERS.SLOWING.PREFIX
-msgid "Slowing"
-msgstr "Slowing"
-
-#: STRINGS.MODIFIERS.SLOWING.DESC
-msgid "Damage dealt will cause the attacker to run slower for a short time."
-msgstr "Damage dealt will cause the attacker to run slower for a short time."
 
 #: STRINGS.MODIFIERS.ELECTRIC_THORNS.PREFIX
 msgid "Zapping"

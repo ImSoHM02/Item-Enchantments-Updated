@@ -18,6 +18,7 @@ PrefabFiles = {
 	"orbfx",
 	"enchantedpapyrus",
 	"modifier_essence",
+	"ghoststrikefx",
 }
 
 local SCROLL_RARITIES = { "good", "rare", "epic", "legendary", "mythic" }
@@ -87,11 +88,8 @@ GLOBAL.TUNING.MODIFIER_ENABLE_POINTY = GetModConfigData("enable_pointy")
 GLOBAL.TUNING.MODIFIER_ENABLE_SPEEDY = GetModConfigData("enable_speedy")
 GLOBAL.TUNING.MODIFIER_ENABLE_LIGHTWEIGHT = GetModConfigData("enable_lightweight")
 GLOBAL.TUNING.MODIFIER_ENABLE_FLEETFOOTED = GetModConfigData("enable_fleetfooted")
-GLOBAL.TUNING.MODIFIER_ENABLE_DULL = GetModConfigData("enable_dull")
 GLOBAL.TUNING.MODIFIER_ENABLE_SLUGGISH = GetModConfigData("enable_sluggish")
 GLOBAL.TUNING.MODIFIER_ENABLE_HEAVYWEIGHT = GetModConfigData("enable_heavyweight")
-GLOBAL.TUNING.MODIFIER_ENABLE_BLUNT = GetModConfigData("enable_blunt")
-GLOBAL.TUNING.MODIFIER_ENABLE_SLOWING = GetModConfigData("enable_slowing")
 
 local ESSENCE_AMOUNTS = {
 	good = {1, 2},

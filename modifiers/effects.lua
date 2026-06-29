@@ -243,38 +243,23 @@ end
 
 local function effect_ghoststrike(inst, weapon, target)
 	if target == nil or weapon == nil or inst == nil or (inst.components.health and inst.components.health:IsDead()) then return end
-	local ghost = GLOBAL.SpawnPrefab(inst.prefab)
-	ghost:AddTag("FX")
-	ghost:AddTag("NOCLICK")
-	ghost:AddTag("notarget")
 
 	weapon:AddTag("modifier_ghoststrike_oncooldown")
-	weapon:DoTaskInTime(2.5, function() 
-		if weapon and weapon:IsValid() then 
-			weapon:RemoveTag("modifier_ghoststrike_oncooldown") 
-		end 
+	weapon:DoTaskInTime(2.5, function()
+		if weapon and weapon:IsValid() then
+			weapon:RemoveTag("modifier_ghoststrike_oncooldown")
+		end
 	end)
 
-	GLOBAL.RemovePhysicsColliders(ghost)
+	--lightweight FX clone: a single FX entity reusing the player's loaded build,
+	--instead of spawning a full player prefab + real copies of every equipped item.
+	local ghost = GLOBAL.SpawnPrefab("ghoststrikefx")
+	if ghost == nil then return end
+	ghost:OnSpawn(inst, weapon)
 
-	ghost.AnimState:SetMultColour(0.4, 0.4, 0.4, 0.4)--ghostly
-
-	for k,v in pairs(inst.components.skinner and inst.components.skinner:GetClothing() or {}) do
-		ghost.components.skinner:SetClothing(v)--skins
-	end
-	for k,v in pairs(inst.components.inventory and inst.components.inventory.equipslots or {}) do
-		ghost.components.inventory:Equip(GLOBAL.SpawnPrefab(v.prefab))--equipment
-	end
 	local tx, ty, tz = target.Transform:GetWorldPosition()
-	ghost.Transform:SetPosition(tx + math.random(-1, 1), ty, tz + math.random(-1,1))
-	ghost.Transform:SetRotation(GLOBAL.GetBearing(ghost:GetPosition(), target:GetPosition()))--(inst.Transform:GetRotation() - 180)
-	ghost:DoTaskInTime(0, function() 
-		ghost.AnimState:PlayAnimation("atk")
-		ghost:ListenForEvent("animover", function() 
-			GLOBAL.SpawnPrefab("small_puff").Transform:SetPosition(ghost.Transform:GetWorldPosition())--y+0.1?
-			ghost:Remove()
-		end)
-	end)
+	ghost.Transform:SetPosition(tx + math.random(-1, 1), ty, tz + math.random(-1, 1))
+	ghost.Transform:SetRotation(GLOBAL.GetBearing(ghost:GetPosition(), target:GetPosition()))
 end
 
 
@@ -406,20 +391,6 @@ end
 local function effect_rushing(inst, weapon, target, extra)
 	if weapon:IsValid() and weapon.components.equippable then
 		weapon.components.equippable.walkspeedmult = 1.25
-		if weapon.mod_rushing then
-			weapon.mod_rushing:Cancel()
-			weapon.mod_rushing = nil
-		end
-		weapon.mod_rushing = weapon:DoTaskInTime(5, function()
-			weapon.components.equippable.walkspeedmult = 1
-			weapon.mod_rushing = nil
-		end)
-	end
-end
-
-local function effect_slowing(inst, weapon, target, extra)
-	if weapon:IsValid() and weapon.components.equippable then
-		weapon.components.equippable.walkspeedmult = 0.75
 		if weapon.mod_rushing then
 			weapon.mod_rushing:Cancel()
 			weapon.mod_rushing = nil
