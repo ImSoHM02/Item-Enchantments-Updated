@@ -289,17 +289,6 @@ AddComponentPostInit("inventoryitem", function(self)
 			end)		
 		end
 	end
-
-	function self.inst.replica.inventoryitem:SetWalkSpeedMult(walkspeedmult)
-		local x = 100
-		if walkspeedmult ~= nil then
-			x = tostring(x * walkspeedmult)
-			x = GLOBAL.tonumber(x:sub(x:find("^%-?%d+")))
-		end
-		GLOBAL.assert(x >= -255 and x <= 255, "Walk speed multiplier out of range: "..tostring(walkspeedmult))
-		GLOBAL.assert(walkspeedmult == nil or math.abs(walkspeedmult * 100 - x) < .01 , "Walk speed multiplier can only have up to .01 precision: "..tostring(walkspeedmult))
-		self.inst.replica.inventoryitem.classified.walkspeedmult:set(x)
-	end
 end)
 
 AddComponentPostInit("inventory", function(self)
@@ -385,9 +374,12 @@ AddComponentPostInit("combat", function(self)
 				planar:AddMultiplier("modifier_dmg", 1 + wep.modifier_dmg, "modifier_dmg")
 			end
 		end
-		oldDoAttack(self, target_override, weapon, projectile, stimuli, instancemult, instrangeoverride, instpos)
-		if planar then--hit resolved synchronously inside oldDoAttack, safe to remove now
+		local ok, err = GLOBAL.pcall(oldDoAttack, self, target_override, weapon, projectile, stimuli, instancemult, instrangeoverride, instpos)
+		if planar then--always remove, even on error, so the multiplier never leaks onto the weapon
 			planar:RemoveMultiplier("modifier_dmg", "modifier_dmg")
+		end
+		if not ok then
+			GLOBAL.error(err)
 		end
 		if targ and wep and wep.components.modifier and wep.modifier_wep_fns and type(wep.modifier_wep_fns) == "table" then
 			for _each, mod_fn in pairs(wep.modifier_wep_fns) do

@@ -1,6 +1,6 @@
 local assets =
 {
-    Asset("ANIM", "anim/papyrus.zip"),
+    --no Asset needed: the base-game papyrus bank/build is always loaded
 }
 
 local function fn()
@@ -35,7 +35,6 @@ local function fn()
 
     inst:AddComponent("inventoryitem")
     inst.components.inventoryitem.imagename = "papyrus"
-    inst.components.inventoryitem.atlasname = "images/inventoryimages.xml"
 
     inst:AddComponent("modifier_scroll")
 

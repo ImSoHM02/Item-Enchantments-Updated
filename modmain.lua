@@ -35,11 +35,6 @@ local function NextRarity(rarity)
 	return nil
 end
 
-local GLOBALVARS = {}
-for k,v in pairs(GLOBAL) do
-	table.insert(GLOBALVARS, k)
-end
-
 -- Set up TUNING variables for mod configuration
 GLOBAL.TUNING.MODIFIER_ENCHANTMENT_SOURCES = GetModConfigData("enchantment_sources") or "all"
 

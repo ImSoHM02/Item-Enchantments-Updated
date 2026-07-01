@@ -390,13 +390,16 @@ end
 
 local function effect_rushing(inst, weapon, target, extra)
 	if weapon:IsValid() and weapon.components.equippable then
-		weapon.components.equippable.walkspeedmult = 1.25
 		if weapon.mod_rushing then
 			weapon.mod_rushing:Cancel()
 			weapon.mod_rushing = nil
+		else--capture the equip's real mult once, before we overwrite it
+			weapon.mod_rushing_prevmult = weapon.components.equippable.walkspeedmult
 		end
+		weapon.components.equippable.walkspeedmult = 1.25
 		weapon.mod_rushing = weapon:DoTaskInTime(5, function()
-			weapon.components.equippable.walkspeedmult = 1
+			weapon.components.equippable.walkspeedmult = weapon.mod_rushing_prevmult or 1
+			weapon.mod_rushing_prevmult = nil
 			weapon.mod_rushing = nil
 		end)
 	end
@@ -503,7 +506,7 @@ local function removefn(inst, tbl, fn)
 end
 
 ----------Modifier Effects Data----------
-if not table.contains(GLOBALVARS, "modifier_effects") then
+if GLOBAL.rawget(GLOBAL, "modifier_effects") == nil then
 	GLOBAL.modifier_effects = {}
 end
 --[[{

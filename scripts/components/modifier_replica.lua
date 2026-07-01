@@ -11,7 +11,7 @@ local Modifier = Class(function(self, inst)
         end
         self.inst.displaynamefn = function(inst)
             if actualname == nil then
-                return self.inst.oldDisplayFn and self.inst.oldDisplayFn() or STRINGS.NAMES[string.upper(self.inst.prefab)]
+                return self.inst.oldDisplayFn and self.inst:oldDisplayFn() or STRINGS.NAMES[string.upper(self.inst.prefab)]
             else
                 return (STRINGS.MODIFIERS[string.upper(actualname)] and STRINGS.MODIFIERS[string.upper(actualname)].PREFIX or STRINGS.MODIFIERS.GENERIC.PREFIX) .. " " .. (self.inst.oldDisplayFn and self.inst:oldDisplayFn() or STRINGS.NAMES[string.upper(self.inst.prefab)])
             end

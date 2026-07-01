@@ -302,10 +302,6 @@ function Modifier:GetRarity()
     return self.mod_rarity
 end
 
-function Modifier:GetRarityString()
-    return TitleCase(STRINGS.MODIFIER_RARITIES[string.upper(self.mod_rarity)] or nil)
-end
-
 function Modifier:OnSave()
     return self.mod_name and { mod_name = self.mod_name } or nil
 end

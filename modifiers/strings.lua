@@ -12,8 +12,6 @@ GLOBAL.STRINGS.NAMES.ENCHANTEDPAPYRUS = "Enchanted Papyrus"
 GLOBAL.STRINGS.CHARACTERS.GENERIC.DESCRIBE.ENCHANTEDPAPYRUS = "It remembers an enchantment for later."
 
 STRINGS.MODIFIER_RARITIES = {
-    WORST = "Worst",
-    BAD = "Bad",
     GOOD = "Good",
     RARE = "Rare",
     EPIC = "Epic",
@@ -178,19 +176,9 @@ STRINGS.MODIFIERS.EFFICIENCY_1 = {
 	DESC = "-10% Fuel usage.",
 }
 
-STRINGS.MODIFIERS.INEFFICIENCY_1 = {
-	PREFIX = "Inefficient",
-	DESC = "+10% Fuel usage.",
-}
-
 STRINGS.MODIFIERS.SOLAR = {
 	PREFIX = "Solar",
 	DESC = "Natural light slowly refuels the item if it is off and not being carried",
-}
-
-STRINGS.MODIFIERS.INEFFICIENCY_2 = {
-	PREFIX = "Impotent",
-	DESC = "+25% Fuel usage.",
 }
 
 STRINGS.MODIFIERS.EFFICIENCY_2 = {
@@ -273,11 +261,6 @@ STRINGS.MODIFIERS.UNWITHERING = {
 	DESC = "This backpack's skin does not decay."
 }
 
-STRINGS.MODIFIERS.WITHERED = {
-	PREFIX = "Withered",
-	DESC = "This backpack's skin is instantly withered."
-}
-
 STRINGS.MODIFIERS.PRESERVER = {
 	PREFIX = "Reallocting",
 	DESC = "Enchantments are preserved onto other items if any or the disenchanted item. Bad enchantments are upgraded."
@@ -291,9 +274,4 @@ STRINGS.MODIFIERS.MINDASCENDER = {
 STRINGS.MODIFIERS.MINDTRANSCENDER = {
 	PREFIX = "Master Tinkerer's",
 	DESC = "While equipped, the wearer can disassemble crafted items for a small portion of this item's durability. Enchantments are preserved onto other items if any."
-}
-
-STRINGS.MODIFIERS.GODLIKE = {
-	PREFIX = "Godlike",
-	DESC = "Has most positive modifiers all in 1.",
 }

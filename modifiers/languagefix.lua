@@ -35,7 +35,7 @@ local function JoinPOFileMultiline(fname)
 end
 
 
-if not table.contains(GLOBALVARS, "TRANSLATORFIX") then
+if not GLOBAL.rawget(GLOBAL, "TRANSLATORFIX") then--rawget: TRANSLATORFIX is undeclared on first load and DST errors on strict global reads
 	GLOBAL.TRANSLATORFIX = true
 	function GLOBAL.LanguageTranslator:LoadPOFile(fname,lang)--this and the above 2 functions are exact copies from translator file, except for the last few lines in this file, to allow multiple files with same language
 		if self.dbfile then 

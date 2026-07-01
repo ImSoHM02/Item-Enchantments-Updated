@@ -1,7 +1,6 @@
 local assets =
 {
-    Asset("IMAGE", "images/inventoryimages.xml"),
-    Asset("ATLAS", "images/inventoryimages.xml"),
+    --no Asset needed: the base-game goldnugget build and greengem image resolve from vanilla
 }
 
 local function fn()
@@ -31,7 +30,6 @@ local function fn()
 
     inst:AddComponent("inventoryitem")
     inst.components.inventoryitem.imagename = "greengem"
-    inst.components.inventoryitem.atlasname = "images/inventoryimages.xml"
 
     MakeHauntableLaunch(inst)
 
