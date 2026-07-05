@@ -58,15 +58,15 @@ local CONFIG_MAP = {
         ["desiccating"] = "MODIFIER_ENABLE_DESICCATING",
 
         -- Modifier cleaner enchantments
-        ["repairer"] = "MODIFIER_ENABLE_TINKERERS",
-        ["infinite"] = "MODIFIER_ENABLE_REALLOCATING",
-        ["preserver"] = "MODIFIER_ENABLE_ENCHANTED",
-        
+        ["repairer"] = "MODIFIER_ENABLE_ENCHANTED",       -- displays as "Enchanted"
+        ["infinite"] = "MODIFIER_ENABLE_EVERLASTING",     -- displays as "Everlasting"
+        ["preserver"] = "MODIFIER_ENABLE_REALLOCATING",   -- displays as "Reallocating"
+
         -- Special equippable enchantments
         ["soulbound"] = "MODIFIER_ENABLE_LOYAL",
         ["telesensitive"] = "MODIFIER_ENABLE_TELEPOOFING",
         ["fleetfooted"] = "MODIFIER_ENABLE_FLEETFOOTED",
-        ["mindascender"] = "MODIFIER_ENABLE_MASTER_TINKERERS",
+        ["mindascender"] = "MODIFIER_ENABLE_TINKERERS",   -- displays as "Tinkerer's"
         ["mindtranscender"] = "MODIFIER_ENABLE_MASTER_TINKERERS",
 }
 

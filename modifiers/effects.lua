@@ -178,7 +178,7 @@ local function effect_telesick(inst, modifiedItem, nilORtarget, bypass)
 end
 
 local function effect_thorns(inst, item, attacker, data)--{damage, attacker.weapon, stimuli}
-	if attacker and attacker.components.combat and attacker.components.health and not attacker.components.health:IsDead() then
+	if attacker and attacker.components.combat and attacker.components.health and not attacker.components.health:IsDead() and data and type(data.damage) == "number" then
 		local extramult = 0
 		if item.components.armor then
 			extramult = extramult + (item.components.armor.absorb_percent/10)
@@ -227,20 +227,6 @@ local function effect_solar(item, toggled_on)
 	end
 end
 
-function GLOBAL.GetBearing(p1, p2)--target, watcher
-    local dx = (p1.x or p1[1]) - (p2.x or p2[1])
-    local dy = (p1.y or p1[2]) - (p2.y or p2[2])
-    local dz = (p1.z or p1[3]) - (p2.z or p2[3])
-    local dist = dx*dx+dy*dy+dz*dz
-	
-	local angle = 360 - (math.atan(dz/dx) * 180 / math.pi)
-	if p1.x < p2.x then
-		return angle 
-	else
-		return angle - 180
-	end
-end
-
 local function effect_ghoststrike(inst, weapon, target)
 	if target == nil or weapon == nil or inst == nil or (inst.components.health and inst.components.health:IsDead()) then return end
 
@@ -258,8 +244,8 @@ local function effect_ghoststrike(inst, weapon, target)
 	ghost:OnSpawn(inst, weapon)
 
 	local tx, ty, tz = target.Transform:GetWorldPosition()
-	ghost.Transform:SetPosition(tx + math.random(-1, 1), ty, tz + math.random(-1, 1))
-	ghost.Transform:SetRotation(GLOBAL.GetBearing(ghost:GetPosition(), target:GetPosition()))
+	ghost.Transform:SetPosition(tx + (math.random() * 2 - 1), ty, tz + (math.random() * 2 - 1))--float offsets; integer math.random(-1,1) landed exactly on the target 1/9 of the time (NaN rotation)
+	ghost:ForceFacePoint(tx, ty, tz)
 end
 
 
@@ -269,7 +255,7 @@ local function play_song(inst, musician, song)
 	for guid, listener in ipairs(ents) do
 		if not song.sucks or GLOBAL.TheNet:GetPVPEnabled() or not listener:HasTag("player") then--make sure to not help enemy players in pvp
 			if not song.periodic or song.periodic == 0 then
-				song.fn(inst)
+				song.fn(listener)
 			else	
 				if listener[song.name .. "_pt"] == nil then--if nil, start ticking the task, if not, keep ticking
 					listener[song.name .. "_pt"] = listener:DoPeriodicTask(song.periodic or 1, song.fn)
@@ -380,7 +366,7 @@ local function effect_collisionproj_throw(inst, owner, target)
 		local x,y,z = inst.Transform:GetWorldPosition()
 		local targets = TheSim:FindEntities(x,y,z, 1, {"_combat"})
 		for k,v in pairs(targets) do
-			if v ~= owner and not v.components.health:IsDead() and (GLOBAL.TheNet:GetPVPEnabled() or not v:HasTag("player")) and not GLOBAL.table.contains(inst.mod_collision_targets, v.GUID) then
+			if v ~= owner and v.components.health and not v.components.health:IsDead() and v.components.combat and (GLOBAL.TheNet:GetPVPEnabled() or not v:HasTag("player")) and not GLOBAL.table.contains(inst.mod_collision_targets, v.GUID) then
 				table.insert(inst.mod_collision_targets, v.GUID)
 				v.components.combat:GetAttacked(owner, inst.components.weapon.damage)
 			end
@@ -406,19 +392,20 @@ local function effect_rushing(inst, weapon, target, extra)
 end
 
 local function effect_electric_thorns(inst, item, attacker, data)--{damage, attacker.weapon, stimuli}
-	if inst and attacker and GLOBAL.GetTableSize(inst.orbs) > 0 then
+	if inst and attacker and attacker.components and GLOBAL.GetTableSize(inst.orbs) > 0 then
 		effect_telesick(attacker, item, nil, true)
 
-		local atkhp = attacker.components.health.currenthealth
+		local atkhealth = attacker.components.health
+		local atkhp = atkhealth and atkhealth.currenthealth
 		GLOBAL.TheWorld:PushEvent("ms_sendlightningstrike", attacker:GetPosition() or {x=0, y=0, z=0})
 
 		if attacker.components.burnable and math.random() < 0.3 then
 			attacker.components.burnable:Ignite()
 		end
-		if atkhp == attacker.components.health.currenthealth then--if lightning did no dmg
-			if attacker ~= inst then
+		if atkhealth and atkhp == atkhealth.currenthealth then--if lightning did no dmg
+			if attacker ~= inst and attacker.components.combat then
 				attacker.components.combat:GetAttacked(inst, 25)
-			else
+			elseif attacker == inst and inst.components.health then
 				inst.components.health:DoDelta(-15)
 			end
 		end
@@ -641,6 +628,10 @@ GLOBAL.modifier_effects.fueled = {
 			insertfn(inst, "modifier_consuming_fns", effect_solar)
 		end,
 		unfn = function(inst)
+			if inst.solartask ~= nil then--the recharge task outlives the enchant otherwise (permanent free fuel)
+				inst.solartask:Cancel()
+				inst.solartask = nil
+			end
 			removefn(inst, "modifier_consuming_fns", effect_solar)
 		end,
 		rarity = "epic",
@@ -855,14 +846,17 @@ GLOBAL.modifier_effects.weapon = {
 		end,
 		fn = function(inst)
 			inst.modifier_use = inst.modifier_use == 0 and 0 or 3--uses 3x durability
-			inst.modifier_oldrange = inst.components.weapon.attackrange or 0
-			inst.components.weapon:SetRange(inst.modifier_oldrange + 10)
+			inst.modifier_oldrange = inst.components.weapon.attackrange--may be nil; keep exact original for restore
+			inst.modifier_oldhitrange = inst.components.weapon.hitrange
+			inst.components.weapon:SetRange((inst.modifier_oldrange or 0) + 10)
 			insertfn(inst, "modifier_wep_fns", effect_ghoststrike)
 		end,
 		unfn = function(inst)
 			inst.modifier_use = nil
-			inst.components.weapon:SetRange(inst.modifier_oldrange)
+			inst.components.weapon.attackrange = inst.modifier_oldrange--restore exact originals (SetRange would coerce nil hitrange)
+			inst.components.weapon.hitrange = inst.modifier_oldhitrange
 			inst.modifier_oldrange = nil
+			inst.modifier_oldhitrange = nil
 			removefn(inst, "modifier_wep_fns", effect_ghoststrike)
 		end,
 		rarity = "mythic",
@@ -1156,12 +1150,17 @@ GLOBAL.modifier_effects.equippable = {--ideas: sanity/hunger/temperature effects
 		fn = function(inst)
 			inst.components.inventoryitem.keepondeath = true
 			inst:DoTaskInTime(0, function()--delay it so owner is actually assigned if this is ran on start up
-				print(inst.components.inventoryitem.owner)
+				if inst.components.inventoryitem == nil or inst.components.equippable == nil then
+					return
+				end
 				if inst.components.inventoryitem.owner then
 					local slot = inst.components.equippable.equipslot
 					local owner = inst.components.inventoryitem:GetGrandOwner()
+					if owner == nil or owner.components.inventory == nil then
+						return--grand owner is a container (chest / backpack on the ground): stay dormant, bind on next real pickup
+					end
 					inst.boundguy = owner
-					if slot and owner.components.inventory.equipslots[slot] == nil or not owner.components.inventory.equipslots[slot]:HasTag("modifier_soulbound") then
+					if slot and (owner.components.inventory.equipslots[slot] == nil or not owner.components.inventory.equipslots[slot]:HasTag("modifier_soulbound")) then
 						owner.components.inventory:Equip(inst)
 					end
 				end

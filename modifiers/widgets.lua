@@ -108,8 +108,14 @@ local function updateUI(self)
 		end	
 
 		self.modified:GetAnimState():PushAnimation(rarity and string.lower(rarity) or "test", true)
-		if source == "modifier" and self.item:HasTag("modifier_ghoststrike") then
+		if source == "modifier" and self.item:HasTag("modifier_ghoststrike") and self.item.uitask == nil then--at most one task per item
 			self.item.uitask = self.item:DoPeriodicTask(0.9, function(inst)
+				if not self.inst:IsValid() then--this tile was killed; stop and let the next live tile recreate the task
+					inst.uitask:Cancel()
+					inst.uitask = nil
+					inst.lastchange = nil
+					return
+				end
 				if inst.lastchange == nil then
 					inst.lastchange = inst.replica.modifier:GetRarity()
 				end
@@ -151,12 +157,12 @@ AddClassPostConstruct("widgets/itemtile", function(self, owner)--adding new UIAn
 	self.modified:SetClickable(false)
 
 	updateUI(self)
-	self.item:ListenForEvent("modifier_rarity_client", function(inst)
+	self.inst:ListenForEvent("modifier_rarity_client", function(inst)
 		updateUI(self)
-	end)
-	self.item:ListenForEvent("modifier_scroll_dirty", function(inst)
+	end, self.item)--listen via the widget's entity so callbacks die with the tile (vanilla itemtile pattern)
+	self.inst:ListenForEvent("modifier_scroll_dirty", function(inst)
 		updateUI(self)
-	end)
+	end, self.item)
 	
 	local oldUpdate = self.UpdateTooltip
 	function self:UpdateTooltip()

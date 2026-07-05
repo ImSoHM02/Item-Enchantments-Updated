@@ -123,7 +123,7 @@ end
 local rarities_lookup = {
 	mythic = true,
 	legendary = true,
-	epIc = true,
+	epic = true,
 	rare = true,
 	good = true,
 }
@@ -171,8 +171,10 @@ local function EnsureBossNet(inst)
 		end
 		inst:ListenForEvent("modifierbossdirty", RefreshBossRarity)
 		inst:ListenForEvent("modifierbossnamedirty", RefreshBossName)
-		inst:DoTaskInTime(0, RefreshBossRarity)
-		inst:DoTaskInTime(0, RefreshBossName)
+		inst:DoTaskInTime(0, function()
+			RefreshBossRarity()
+			RefreshBossName()
+		end)
 	end
 end
 
@@ -237,16 +239,17 @@ end
 AddComponentPostInit("equippable", function(self)
 	modifier_init(self.inst)
 	local oldEquip = self.Equip
-	function self:Equip(owner)
-		oldEquip(self, owner)
+	function self:Equip(owner, ...)
+		local ret = oldEquip(self, owner, ...)--forward from_ground (and anything Klei adds later); many onequipfns use it
 		if self.inst:HasTag("modifier_soulbound") then
 			findLink(self.inst, owner)
 		end
+		return ret
 	end
 
 	local oldUnequip = self.Unequip
-	function self:Unequip(owner)
-		oldUnequip(self, owner)
+	function self:Unequip(owner, ...)
+		local ret = oldUnequip(self, owner, ...)
 		if self.inst:HasTag("modifier_soulbound") then
 			self.inst:DoTaskInTime(0.5, function()
 				if owner and owner.components.inventory and owner.components.inventory.itemslots and not GLOBAL.table.contains(owner.components.inventory.itemslots, self.inst) then--and not GLOBAL.table.contains(owner.components.inventory.equipslots, self.inst)
@@ -259,16 +262,18 @@ AddComponentPostInit("equippable", function(self)
 				end
 			end)
 		end
+		return ret
 	end
 end)
 
 AddComponentPostInit("inventoryitem", function(self)
 	local oldOnPickup = self.OnPickup
 	function self:OnPickup(pickupguy, pickuppos)
-		oldOnPickup(self, pickupguy, pickuppos)
-		if self.inst:HasTag("modifier_soulbound") then
+		local objectDestroyed = oldOnPickup(self, pickupguy, pickuppos)
+		if not objectDestroyed and self.inst:IsValid() and self.inst:HasTag("modifier_soulbound") then
 			findLink(self.inst, pickupguy)
 		end
+		return objectDestroyed--vanilla Inventory:GiveItem aborts when truthy (item consumed itself on pickup, e.g. bullkelp_beached)
 	end
 
 	local oldOnDrop = self.OnDropped
@@ -306,14 +311,14 @@ AddComponentPostInit("inventory", function(self)
 	local oldSwapEquipWithActiveItem = self.SwapEquipWithActiveItem
 	function self:SwapEquipWithActiveItem()
 		local active_item = self:GetActiveItem()
-		if active_item then
-			local active_item_slot = active_item.components.equippable and active_item.components.equippable.equipslot
-			local current_item_in_slot = self:GetEquippedItem(active_item_slot)
-			if not current_item_in_slot:HasTag("modifier_soulbound") or active_item:HasTag("modifier_soulbound") then--we can swap with other loyals only
-				oldSwapEquipWithActiveItem(self)
-			else
-				bound_no_unequip(self.owner, current_item_in_slot)
-			end
+		if active_item == nil or active_item.components.equippable == nil then
+			return oldSwapEquipWithActiveItem(self)--vanilla no-ops safely when there is nothing valid to swap
+		end
+		local current_item_in_slot = self:GetEquippedItem(active_item.components.equippable.equipslot)
+		if current_item_in_slot == nil or not current_item_in_slot:HasTag("modifier_soulbound") or active_item:HasTag("modifier_soulbound") then--we can swap with other loyals only
+			oldSwapEquipWithActiveItem(self)
+		else
+			bound_no_unequip(self.owner, current_item_in_slot)
 		end
 	end
 end)
@@ -344,8 +349,8 @@ end)
 
 AddComponentPostInit("lootdropper", function(self)
 	local oldSpawnLoot = self.SpawnLootPrefab
-	function self:SpawnLootPrefab(lootprefab, pt)
-		local loot = oldSpawnLoot(self, lootprefab, pt)
+	function self:SpawnLootPrefab(lootprefab, pt, ...)
+		local loot = oldSpawnLoot(self, lootprefab, pt, ...)--forward linked_skinname/skin_id/userid so skinned loot keeps its skin
 		if loot and loot.components.modifier and not self.inst:HasTag("modifier_boss") and math.random() < 0.25 then--25% of getting a modifier (check if we didnt drop a modifierprefab)
 			if self.inst:HasTag("epic") then
 				loot.components.modifier:GenerateFromTable({good = 80, rare = 12, epic = 5, legendary = 3})
@@ -451,8 +456,8 @@ end)
 
 AddComponentPostInit("playercontroller", function(self)
 	local oldGetAttackTarget = self.GetAttackTarget
-	function self:GetAttackTarget(force_attack, force_target, isretarget)--when using F to attack
-		local target = oldGetAttackTarget(self, force_attack, force_target, isretarget)
+	function self:GetAttackTarget(force_attack, force_target, isretarget, ...)--when using F to attack; forward use_remote_predict
+		local target = oldGetAttackTarget(self, force_attack, force_target, isretarget, ...)
 		if target then
 			local wep = self.inst.replica.combat and self.inst.replica.combat:GetWeapon()
 			if wep and target and wep:HasTag("modifier_ghoststrike_oncooldown") then
@@ -744,27 +749,34 @@ function GLOBAL.SpawnBoss(inst, rarity)
 		end)
 	end
 	inst.components.combat:SetDefaultDamage(inst.components.combat.defaultdamage * 2 or 50)--100% more damage
+	local healthpercent = inst.components.health:GetPercent()--SetMaxHealth also refills current health; preserve the loaded value so bosses don't full-heal on every restart
 	inst.components.health:SetMaxHealth(inst.components.health.maxhealth * 1.5)--50% more health
+	inst.components.health:SetPercent(healthpercent)
 	inst.components.combat:SetRange(inst.components.combat.attackrange * 1.5, inst.components.combat.hitrange * 1.5)
 	inst:ListenForEvent("death", onBossDeath)
 	if not inst:HasTag("epic") then
 		inst.components.combat:SetAttackPeriod(inst.components.combat.min_attack_period * 0.75)
 		-- Boss slowing effect - only apply if enabled in config
 		if GLOBAL.TUNING.MODIFIER_ENABLE_BOSS_SLOWING then
+			local unslowkey = "modifier_unslowtask_" .. tostring(inst.GUID)--per-boss field so two bosses can't cancel each other's cleanup
 			inst:DoPeriodicTask(10, function()
-				if inst.components.combat.target and inst.components.combat.target.components.locomotor then
-					if inst.components.combat.target.unslowtask then
-						inst.components.combat.target.unslowtask:Cancel()
-						inst.components.combat.target.unslowtask = nil
+				local target = inst.components.combat.target
+				if target and target.components.locomotor then
+					if target[unslowkey] then
+						target[unslowkey]:Cancel()
+						target[unslowkey] = nil
 					end
-					inst.components.combat.target:SpawnChild("buff_fx"):anim("negative", { build = "buff_fx", symbol = "speed"})
+					target:SpawnChild("buff_fx"):anim("negative", { build = "buff_fx", symbol = "speed"})
 
-					if inst.components.combat.target.components.locomotor:GetExternalSpeedMultiplier(inst, "bossdebuff") == 1 then
-						inst.components.combat.target.components.locomotor:SetExternalSpeedMultiplier(inst, "bossdebuff", 0.5)
+					if target.components.locomotor:GetExternalSpeedMultiplier(inst, "bossdebuff") == 1 then
+						target.components.locomotor:SetExternalSpeedMultiplier(inst, "bossdebuff", 0.5)
 					end
-					
-					inst.components.combat.target.unslowtask = inst.components.combat.target:DoTaskInTime(12, function(target)
-						target.components.locomotor:RemoveExternalSpeedMultiplier(inst, "bossdebuff")
+
+					target[unslowkey] = target:DoTaskInTime(12, function(target)
+						target[unslowkey] = nil
+						if target.components.locomotor then
+							target.components.locomotor:RemoveExternalSpeedMultiplier(inst, "bossdebuff")
+						end
 					end)
 				end
 			end)
@@ -800,6 +812,18 @@ local function PickBossType(inst, msg)
 	return false
 end
 
+local function BuildEligibleBossEnts()
+	local eligbleEnts = {}
+	local count = 0
+	for e, ent in pairs(GLOBAL.Ents) do
+		if ent and ent:IsValid() and ent.components.combat and ent.components.combat.defaultdamage ~= 0 and not ent:HasTag("modifier_boss") and not ent:HasTag("player") and not ent:HasTag("INLIMBO") and ent.components.locomotor then
+			eligbleEnts[e] = ent
+			count = count + 1
+		end
+	end
+	return eligbleEnts, count
+end
+
 local function TrySpawnBoss(inst, extra)--this gets triggered on new phase, new cycle and new season. So x1 on phase, x2 on new day, x4 on new season day
 	if not inst.ismastersim then
 		return
@@ -811,27 +835,28 @@ local function TrySpawnBoss(inst, extra)--this gets triggered on new phase, new 
 		bosses = 2
 	end
 
-	local eligbleEnts = {}
-	for e, ent in pairs(GLOBAL.Ents) do
-		if ent and ent:IsValid() and ent.components.combat and ent.components.combat.defaultdamage ~= 0 and not ent:HasTag("modifier_boss") and not ent:HasTag("player") and not ent:HasTag("INLIMBO") and ent.components.locomotor then
-			eligbleEnts[e] = ent
-		end
-	end
-
 	if GLOBAL.GetTableSize(GLOBAL.AllPlayers) > 2 then
 		chance = chance * math.min(GLOBAL.GetTableSize(GLOBAL.AllPlayers)/2, 10)
 	end
+
+	local eligbleEnts = nil--only walk the (large) Ents table after a roll actually succeeds
+	local eligiblecount = 0
 	for x = 1, bosses do
-		if GLOBAL.GetTableSize(eligbleEnts) > 0 and math.random() < chance then--1% chance
-			local attempts = 1
-			while(attempts < 10) do
-				local chosenEnt = GLOBAL.GetRandomItem(eligbleEnts)
-				if chosenEnt and chosenEnt:IsValid() and chosenEnt.components.health and not chosenEnt.components.health:IsDead() then
-					if PickBossType(chosenEnt, "emerged") then
-						break
+		if math.random() < chance then--1% chance
+			if eligbleEnts == nil then
+				eligbleEnts, eligiblecount = BuildEligibleBossEnts()
+			end
+			if eligiblecount > 0 then
+				local attempts = 1
+				while(attempts < 10) do
+					local chosenEnt = GLOBAL.GetRandomItem(eligbleEnts)
+					if chosenEnt and chosenEnt:IsValid() and chosenEnt.components.health and not chosenEnt.components.health:IsDead() then
+						if PickBossType(chosenEnt, "emerged") then
+							break
+						end
 					end
+					attempts = attempts + 1
 				end
-				attempts = attempts + 1
 			end
 		end
 	end
@@ -848,12 +873,12 @@ AddPrefabPostInit("world", function(inst)
 end)
 
 AddPrefabPostInitAny(function(inst)
+	if inst.Network == nil then--non-networked entities (placers, client-side FX) can't carry netvars; symmetric on server and client
+		return inst
+	end
 	EnsureBossNet(inst)
-	if not GLOBAL.TheWorld.ismastersim then 
-		inst:DoTaskInTime(0, function()
-			TryEnableBossIndicator(inst)
-		end)
-		return inst 
+	if not GLOBAL.TheWorld.ismastersim then
+		return inst
 	end
 
 	if inst:HasTag("player") then

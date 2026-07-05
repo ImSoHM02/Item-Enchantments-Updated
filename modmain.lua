@@ -135,7 +135,7 @@ if GLOBAL.KnownModIndex:IsModEnabled("workshop-488009136") then--make bows use o
 	function GLOBAL.ARCHERYFUNCS.CalcFinalDamage(inst, attacker, target, applydodelta)
 		local dmg = oldBowCalcFinalDamage(inst, attacker, target, applydodelta)
 		local bow
-		if attacker then
+		if attacker and attacker.components.inventory then
 			bow = attacker.components.inventory.equipslots.hands
 		end
 		return dmg * (1 + (bow and bow.modifier_dmg or 0))
@@ -196,7 +196,7 @@ local function ConsolePlayer()
 	return nil
 end
 
-local function GiveScroll(player, rarity)
+local function GiveScroll(player, rarity, infinite)
 	player = player or ConsolePlayer()
 	if player == nil or player.components == nil or player.components.inventory == nil then
 		return
@@ -204,6 +204,9 @@ local function GiveScroll(player, rarity)
 	local scroll = GLOBAL.SpawnPrefab("enchantedpapyrus")
 	if scroll and scroll.components.modifier_scroll then
 		scroll.components.modifier_scroll:SetRarity(rarity)
+		if infinite then
+			scroll.components.modifier_scroll:SetInfinite(true)
+		end
 		if not player.components.inventory:GiveItem(scroll) then
 			local x, y, z = player.Transform:GetWorldPosition()
 			scroll.Transform:SetPosition(x, y, z)
@@ -269,6 +272,12 @@ local actCombineScroll = AddAction("MOD_COMBINE_SCROLL", GLOBAL.STRINGS.ACTIONS.
 	if act == nil or act.invobject == nil or act.target == nil then
 		return false
 	end
+	if act.invobject == act.target then--hardening: a modified client can request combining a scroll with itself (1-scroll upgrade + double Remove)
+		return false
+	end
+	if act.invobject:HasTag("modifier_scroll_infinite") or act.target:HasTag("modifier_scroll_infinite") then--debug scrolls can't be combined into real next-tier scrolls
+		return false
+	end
 	local scroll_a = act.invobject.components.modifier_scroll
 	local scroll_b = act.target.components.modifier_scroll
 	if scroll_a == nil or scroll_b == nil then
@@ -330,7 +339,7 @@ AddComponentAction("USEITEM", "modifier_scroll", function(inst, doer, target, ac
 		return
 	end
 
-	if target:HasTag("modifier_scroll_item") and target.replica and target.replica.modifier_scroll and inst.replica and inst.replica.modifier_scroll then
+	if target ~= inst and target:HasTag("modifier_scroll_item") and not inst:HasTag("modifier_scroll_infinite") and not target:HasTag("modifier_scroll_infinite") and target.replica and target.replica.modifier_scroll and inst.replica and inst.replica.modifier_scroll then
 		local r1 = inst.replica.modifier_scroll:GetRarity()
 		local r2 = target.replica.modifier_scroll:GetRarity()
 		if r1 ~= nil and r2 ~= nil and string.lower(r1) == string.lower(r2) and NextRarity(string.lower(r1)) ~= nil then
@@ -423,14 +432,6 @@ for _, prefab in ipairs(DRYINGRACK_PREFABS) do
 	end)
 end
 
-local function RemoteExecIfClient(fnstr)
-	if GLOBAL.TheWorld ~= nil and not GLOBAL.TheWorld.ismastersim and GLOBAL.c_remote ~= nil then
-		GLOBAL.c_remote(fnstr)
-		return true
-	end
-	return false
-end
-
 GLOBAL.c_spawnscroll = function(rarity, count, player)
 	player = player or ConsolePlayer()
 	rarity = type(rarity) == "string" and string.lower(rarity) or nil
@@ -456,6 +457,16 @@ end
 for _, rarity in ipairs(SCROLL_RARITIES) do
 	GLOBAL["c_spawnscroll_" .. rarity] = function(count, player)
 		GLOBAL.c_spawnscroll(rarity, count, player)
+	end
+end
+
+GLOBAL.c_spawninfinitescrolls = function(player)--one never-consumed scroll of every rarity (debug/testing)
+	player = player or ConsolePlayer()
+	if player == nil then
+		return
+	end
+	for _, rarity in ipairs(SCROLL_RARITIES) do
+		GiveScroll(player, rarity, true)
 	end
 end
 

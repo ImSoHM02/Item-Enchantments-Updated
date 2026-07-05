@@ -39,7 +39,7 @@ function Modifier:IsModified()
     if self.inst.components and self.inst.components.modifier ~= nil then
         return self.inst.components.modifier:IsModified()
     else
-        return self.mod_name:value() ~= "" or self.inst:HasTag("modifier")
+        return self.mod_name:value() ~= "" or self.inst:HasTag("modified")
     end
 end
 

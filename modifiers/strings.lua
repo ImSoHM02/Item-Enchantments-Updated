@@ -262,7 +262,7 @@ STRINGS.MODIFIERS.UNWITHERING = {
 }
 
 STRINGS.MODIFIERS.PRESERVER = {
-	PREFIX = "Reallocting",
+	PREFIX = "Reallocating",
 	DESC = "Enchantments are preserved onto other items if any or the disenchanted item. Bad enchantments are upgraded."
 }
 
