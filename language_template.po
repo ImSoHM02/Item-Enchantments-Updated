@@ -211,8 +211,8 @@ msgid "Razor-sharp"
 msgstr "Razor-sharp"
 
 #: STRINGS.MODIFIERS.SHARPNESS_3.DESC
-msgid "+75% Damage dealt."
-msgstr "+75% Damage dealt."
+msgid "+50% Damage dealt."
+msgstr "+50% Damage dealt."
 
 #: STRINGS.MODIFIERS.SHARPNESS_1.PREFIX
 msgid "Pointy"

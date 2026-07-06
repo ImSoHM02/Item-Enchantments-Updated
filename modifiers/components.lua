@@ -399,15 +399,15 @@ AddComponentPostInit("combat", function(self)
 	local oldGetAttacked = self.GetAttacked
 	function self:GetAttacked(attacker, damage, weapon, stimuli, spdamage)
 		if self.inst.components.inventory and self.inst.components.inventory.equipslots and damage and damage > 0 then --no inventory = no effects, stop here
-			local totalresist = 0
+			local resistmult = 1
 			for each, equipped in pairs(self.inst.components.inventory.equipslots) do
 				if equipped and equipped.components.modifier and equipped.components.modifier.mod_name and equipped.modifier_resist then
-					totalresist = totalresist + equipped.modifier_resist
+					resistmult = resistmult * (1 - equipped.modifier_resist)--multiple resist pieces stack multiplicatively, not additively
 				end
 			end
 			local olddamage = damage
-			damage = math.max(damage * (1-totalresist), 0)--min capped at 0, to make sure we dont manage to heal from attacks instead
-			if totalresist > 0 then--hack to still damage armor by the damage mitigated
+			damage = math.max(damage * resistmult, 0)--min capped at 0, to make sure we dont manage to heal from attacks instead
+			if resistmult < 1 then--hack to still damage armor by the damage mitigated
 				self.inst.components.inventory:ApplyDamage(olddamage - damage, attacker, weapon)
 			end
 		end
@@ -478,14 +478,17 @@ AddComponentPostInit("workable", function(self)
 				tool = hands
 			end
 		end
+		if tool and type(tool.modifier_workfn) == "function" then--enchants like Feller's/Laborer's reshape how much work a swing does
+			numworks = tool.modifier_workfn(tool, worker, self.inst, self.action, numworks) or numworks
+		end
 		oldWorkedBy(self, worker, numworks)
-		if tool and tool:HasTag("modifier_resourcelust") then
+		if tool then
 			if tool.modifier_tool_fns and type(tool.modifier_tool_fns) == "table" then
 				for _each, mod_fn in pairs(tool.modifier_tool_fns) do
-					mod_fn(worker, tool, self.inst, self.action)
+					mod_fn(worker, tool, self.inst, self.action, self)--pass the workable component so effects can read workleft even if the target removed itself on finish
 				end
 			end
-			if self.workleft == 0 then
+			if tool:HasTag("modifier_resourcelust") and self.workleft == 0 then
 				lust_kill_tracker(tool, worker, self.inst)
 			end
 		end

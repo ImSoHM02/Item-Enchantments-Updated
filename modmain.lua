@@ -5,10 +5,6 @@ Asset( "ATLAS", "images/magic_duct_tape.xml"),
 
 local STRINGS = GLOBAL.STRINGS
 
-STRINGS.NAMES.MODIFIER_ESSENCE = "Enchantment Essence"
-STRINGS.RECIPE_DESC.MODIFIER_ESSENCE = "Condensed magic, reclaimed from gear."
-STRINGS.CHARACTERS.GENERIC.DESCRIBE.MODIFIER_ESSENCE = "It shimmers with leftover power."
-
 STRINGS.ACTIONS.MOD_COMBINE_SCROLL = "Combine"
 
 PrefabFiles = {
@@ -17,7 +13,6 @@ PrefabFiles = {
 	"cleaner",
 	"orbfx",
 	"enchantedpapyrus",
-	"modifier_essence",
 	"ghoststrikefx",
 }
 
@@ -64,7 +59,6 @@ GLOBAL.TUNING.MODIFIER_ENABLE_VAMPIRIC = GetModConfigData("enable_vampiric")
 GLOBAL.TUNING.MODIFIER_ENABLE_ICEY = GetModConfigData("enable_icey")
 GLOBAL.TUNING.MODIFIER_ENABLE_FIERY = GetModConfigData("enable_fiery")
 GLOBAL.TUNING.MODIFIER_ENABLE_RAZOR_SHARP = GetModConfigData("enable_razor_sharp")
-GLOBAL.TUNING.MODIFIER_ENABLE_TELEPOOFING = GetModConfigData("enable_telepoofing")
 GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_IRRITATION = GetModConfigData("enable_song_of_irritation")
 GLOBAL.TUNING.MODIFIER_ENABLE_ENCHANTED = GetModConfigData("enable_enchanted")
 GLOBAL.TUNING.MODIFIER_ENABLE_FIREPROOF = GetModConfigData("enable_fireproof")
@@ -83,49 +77,29 @@ GLOBAL.TUNING.MODIFIER_ENABLE_POINTY = GetModConfigData("enable_pointy")
 GLOBAL.TUNING.MODIFIER_ENABLE_SPEEDY = GetModConfigData("enable_speedy")
 GLOBAL.TUNING.MODIFIER_ENABLE_LIGHTWEIGHT = GetModConfigData("enable_lightweight")
 GLOBAL.TUNING.MODIFIER_ENABLE_FLEETFOOTED = GetModConfigData("enable_fleetfooted")
-GLOBAL.TUNING.MODIFIER_ENABLE_SLUGGISH = GetModConfigData("enable_sluggish")
-GLOBAL.TUNING.MODIFIER_ENABLE_HEAVYWEIGHT = GetModConfigData("enable_heavyweight")
-
-local ESSENCE_AMOUNTS = {
-	good = {1, 2},
-	rare = {2, 3},
-	epic = {3, 4},
-	legendary = {4, 5},
-	mythic = {6, 7},
-}
-
-local function SpawnEssenceFromRarity(rarity, owner_or_pos)
-	rarity = rarity and string.lower(rarity) or nil
-	local range = rarity and ESSENCE_AMOUNTS[rarity] or nil
-	if range == nil then
-		return
-	end
-	local min, max = range[1], range[2]
-	local count = math.random(min, max)
-	if count <= 0 then
-		return
-	end
-	local x, y, z = 0, 0, 0
-	if owner_or_pos and owner_or_pos.Transform then
-		x, y, z = owner_or_pos.Transform:GetWorldPosition()
-	elseif type(owner_or_pos) == "table" then
-		x, y, z = owner_or_pos.x or 0, owner_or_pos.y or 0, owner_or_pos.z or 0
-	end
-	for _ = 1, count do
-		local essence = GLOBAL.SpawnPrefab("modifier_essence")
-		if essence ~= nil then
-			if owner_or_pos ~= nil and owner_or_pos.components ~= nil and owner_or_pos.components.inventory ~= nil then
-				if not owner_or_pos.components.inventory:GiveItem(essence) then
-					essence.Transform:SetPosition(x, y, z)
-				end
-			else
-				essence.Transform:SetPosition(x, y, z)
-			end
-		end
-	end
-end
-
-GLOBAL.SpawnEssenceFromRarity = SpawnEssenceFromRarity
+GLOBAL.TUNING.MODIFIER_ENABLE_EXECUTIONERS = GetModConfigData("enable_executioners")
+GLOBAL.TUNING.MODIFIER_ENABLE_DUELISTS = GetModConfigData("enable_duelists")
+GLOBAL.TUNING.MODIFIER_ENABLE_REAPING = GetModConfigData("enable_reaping")
+GLOBAL.TUNING.MODIFIER_ENABLE_MOONSTRUCK = GetModConfigData("enable_moonstruck")
+GLOBAL.TUNING.MODIFIER_ENABLE_SELF_MENDING = GetModConfigData("enable_self_mending")
+GLOBAL.TUNING.MODIFIER_ENABLE_UMBRAL = GetModConfigData("enable_umbral")
+GLOBAL.TUNING.MODIFIER_ENABLE_FELLERS = GetModConfigData("enable_fellers")
+GLOBAL.TUNING.MODIFIER_ENABLE_PROSPECTORS = GetModConfigData("enable_prospectors")
+GLOBAL.TUNING.MODIFIER_ENABLE_LABORERS = GetModConfigData("enable_laborers")
+GLOBAL.TUNING.MODIFIER_ENABLE_RESONANT = GetModConfigData("enable_resonant")
+GLOBAL.TUNING.MODIFIER_ENABLE_RADIANT = GetModConfigData("enable_radiant")
+GLOBAL.TUNING.MODIFIER_ENABLE_WARMING = GetModConfigData("enable_warming")
+GLOBAL.TUNING.MODIFIER_ENABLE_BRISK = GetModConfigData("enable_brisk")
+GLOBAL.TUNING.MODIFIER_ENABLE_GEOTHERMAL = GetModConfigData("enable_geothermal")
+GLOBAL.TUNING.MODIFIER_ENABLE_DAPPER = GetModConfigData("enable_dapper")
+GLOBAL.TUNING.MODIFIER_ENABLE_INSULATING = GetModConfigData("enable_insulating")
+GLOBAL.TUNING.MODIFIER_ENABLE_SHADED = GetModConfigData("enable_shaded")
+GLOBAL.TUNING.MODIFIER_ENABLE_SATIATING = GetModConfigData("enable_satiating")
+GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_COURAGE = GetModConfigData("enable_song_of_courage")
+GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_WARMTH = GetModConfigData("enable_song_of_warmth")
+GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_HASTE = GetModConfigData("enable_song_of_haste")
+GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_STONE = GetModConfigData("enable_song_of_stone")
+GLOBAL.TUNING.MODIFIER_ENABLE_GAMBLERS = GetModConfigData("enable_gamblers")
 
 -- Boss features
 GLOBAL.TUNING.MODIFIER_ENABLE_BOSS_SLOWING = GetModConfigData("enable_boss_slowing")
@@ -145,6 +119,7 @@ end
 modimport("modifiers/languagefix.lua")
 
 modimport("modifiers/effects.lua")
+modimport("modifiers/enchant_list.lua")--placement rules: which items each enchant is allowed to roll on
 modimport("modifiers/strings.lua")
 
 AddReplicableComponent("modifier")

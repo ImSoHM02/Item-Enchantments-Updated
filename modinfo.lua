@@ -1,5 +1,28 @@
-description = 
+description =
 [[
+
+Version 1.2 - New Enchantments & Balance Pass
+New enchantments:
+- Weapons: Executioner's, Duelist's, Reaping, and Moonstruck (planar damage at night, doubled on full moons).
+- Armor: Self-mending and Umbral (shadow creatures ignore you below 30% sanity).
+- Tools: Feller's, Prospector's, Laborer's, and Resonant.
+- Fueled gear: Radiant, Warming, Brisk, and Geothermal.
+- Clothing: Dapper, Insulating, Shaded, and Satiating.
+- Songs: Courage, Warmth, Haste, and Stone.
+- Gambler's Duct Tape: re-rolls an enchant at the same rarity instead of removing it.
+- Enchantments now follow placement rules, so they only roll on items they make sense on.
+Balance:
+- Razor-sharp is now mythic at +50% damage (was epic at +75%).
+- Damage-reduction enchantments now stack multiplicatively across equipment. Zapping's shield while orbs charge is now 40% (was 99%).
+- Lightweight is now legendary - permanent +25% speed was too strong for a common roll.
+- Lifestealing now procs on 25% of hits as intended (was accidentally 75%).
+- Song of Dapperness is now epic. Song of Irritation is now rare.
+- Removed the joke enchants: Heavyweight, Sluggish and Telepoofing (weapon and armor). Gear that already has one simply loses the enchant.
+- Reallocating Duct Tape now has a real effect: the reclaimed scroll comes back one rarity higher.
+Fixes:
+- Flaming/Freezing thorn descriptions no longer hide their small chance of affecting the wearer.
+Changes:
+- Removed all remaining joke enchants.
 
 Version 1.1 - Enchanted Scrolls & Forging
 - Boss kills now hand out an Enchanted Papyrus if no eligible gear is found, and bosses use a world indicator.
@@ -19,7 +42,7 @@ Added a toggle to change how Enchantments are acquired. "All Sources" is the sam
 
 name                        = "Item Enchantments - Updated"
 author                      = "Im So HM02 (Original by Aquaterion)"
-version                     = "1.1"
+version                     = "1.2"
 forumthread                 = ""
 icon                        = "modicon.tex"
 icon_atlas                  = "modicon.xml"
@@ -229,14 +252,7 @@ configuration_options =
     {
         name = "enable_razor_sharp",
         label = "Enable Razor-sharp",
-        hover = "+75% Damage dealt",
-        options = TrueFalse,
-        default = true,
-    },
-    {
-        name = "enable_telepoofing",
-        label = "Enable Telepoofing",
-        hover = "Damage taken has a chance of randomly teleporting the wearer somewhere close by",
+        hover = "+50% Damage dealt",
         options = TrueFalse,
         default = true,
     },
@@ -264,7 +280,7 @@ configuration_options =
     {
         name = "enable_reallocating",
         label = "Enable Reallocating",
-        hover = "The enchantment is rerolled onto an unenchanted item, including the one just disenchanted. enchantments are upgraded",
+        hover = "Disenchanting returns a scroll one rarity higher than the removed enchantment",
         options = TrueFalse,
         default = true,
     },
@@ -367,16 +383,163 @@ configuration_options =
         default = true,
     },
     {
-        name = "enable_sluggish",
-        label = "Enable Sluggish",
-        hover = "-50% Projectile Speed",
+        name = "enable_executioners",
+        label = "Enable Executioner's",
+        hover = "+100% damage to targets below 25% health",
         options = TrueFalse,
         default = true,
     },
     {
-        name = "enable_heavyweight",
-        label = "Enable Heavyweight",
-        hover = "Walking with this item equipped is harder",
+        name = "enable_duelists",
+        label = "Enable Duelist's",
+        hover = "+35% damage while exactly one enemy is targeting you",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_reaping",
+        label = "Enable Reaping",
+        hover = "Kills have a 15% chance to drop an extra loot roll",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_moonstruck",
+        label = "Enable Moonstruck",
+        hover = "Deals bonus planar damage at night, doubled during a full moon",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_self_mending",
+        label = "Enable Self-mending",
+        hover = "Armor slowly repairs itself while not worn",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_umbral",
+        label = "Enable Umbral",
+        hover = "While the wearer's sanity is below 30%, shadow creatures ignore them",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_fellers",
+        label = "Enable Feller's",
+        hover = "Chopping progresses twice as fast",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_prospectors",
+        label = "Enable Prospector's",
+        hover = "Finishing mining something has a 10% chance to yield a bonus gold nugget or gem",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_laborers",
+        label = "Enable Laborer's",
+        hover = "+1 work done per swing (chop, mine, hammer, dig)",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_resonant",
+        label = "Enable Resonant",
+        hover = "Every 3rd swing echoes, instantly repeating the work for free",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_radiant",
+        label = "Enable Radiant",
+        hover = "+30% light radius while lit",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_warming",
+        label = "Enable Warming",
+        hover = "Radiates gentle warmth while lit",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_brisk",
+        label = "Enable Brisk",
+        hover = "Radiates a pleasant chill while lit",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_geothermal",
+        label = "Enable Geothermal",
+        hover = "Slowly refuels while near a fire or other heat source",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_dapper",
+        label = "Enable Dapper",
+        hover = "Small sanity boost while worn",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_insulating",
+        label = "Enable Insulating",
+        hover = "+60 winter insulation while worn",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_shaded",
+        label = "Enable Shaded",
+        hover = "+60 summer insulation while worn",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_satiating",
+        label = "Enable Satiating",
+        hover = "Hunger drains 15% slower while worn",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_song_of_courage",
+        label = "Enable Song of Courage",
+        hover = "When heard, nearby players deal +15% damage for a short duration",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_song_of_warmth",
+        label = "Enable Song of Warmth",
+        hover = "When heard, nearby players' body temperature drifts toward comfort",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_song_of_haste",
+        label = "Enable Song of Haste",
+        hover = "When heard, nearby players move 25% faster for a short duration",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_song_of_stone",
+        label = "Enable Song of Stone",
+        hover = "When heard, nearby players take 50% less damage for a short duration",
+        options = TrueFalse,
+        default = true,
+    },
+    {
+        name = "enable_gamblers",
+        label = "Enable Gambler's",
+        hover = "Disenchanting re-rolls the item's enchantment at the same rarity instead of removing it",
         options = TrueFalse,
         default = true,
     },
