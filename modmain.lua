@@ -5,10 +5,6 @@ Asset( "ATLAS", "images/magic_duct_tape.xml"),
 
 local STRINGS = GLOBAL.STRINGS
 
-STRINGS.NAMES.MODIFIER_ESSENCE = "Enchantment Essence"
-STRINGS.RECIPE_DESC.MODIFIER_ESSENCE = "Condensed magic, reclaimed from gear."
-STRINGS.CHARACTERS.GENERIC.DESCRIBE.MODIFIER_ESSENCE = "It shimmers with leftover power."
-
 STRINGS.ACTIONS.MOD_COMBINE_SCROLL = "Combine"
 
 PrefabFiles = {
@@ -17,7 +13,7 @@ PrefabFiles = {
 	"cleaner",
 	"orbfx",
 	"enchantedpapyrus",
-	"modifier_essence",
+	"ghoststrikefx",
 }
 
 local SCROLL_RARITIES = { "good", "rare", "epic", "legendary", "mythic" }
@@ -32,11 +28,6 @@ local function NextRarity(rarity)
 		end
 	end
 	return nil
-end
-
-local GLOBALVARS = {}
-for k,v in pairs(GLOBAL) do
-	table.insert(GLOBALVARS, k)
 end
 
 -- Set up TUNING variables for mod configuration
@@ -68,7 +59,6 @@ GLOBAL.TUNING.MODIFIER_ENABLE_VAMPIRIC = GetModConfigData("enable_vampiric")
 GLOBAL.TUNING.MODIFIER_ENABLE_ICEY = GetModConfigData("enable_icey")
 GLOBAL.TUNING.MODIFIER_ENABLE_FIERY = GetModConfigData("enable_fiery")
 GLOBAL.TUNING.MODIFIER_ENABLE_RAZOR_SHARP = GetModConfigData("enable_razor_sharp")
-GLOBAL.TUNING.MODIFIER_ENABLE_TELEPOOFING = GetModConfigData("enable_telepoofing")
 GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_IRRITATION = GetModConfigData("enable_song_of_irritation")
 GLOBAL.TUNING.MODIFIER_ENABLE_ENCHANTED = GetModConfigData("enable_enchanted")
 GLOBAL.TUNING.MODIFIER_ENABLE_FIREPROOF = GetModConfigData("enable_fireproof")
@@ -87,52 +77,29 @@ GLOBAL.TUNING.MODIFIER_ENABLE_POINTY = GetModConfigData("enable_pointy")
 GLOBAL.TUNING.MODIFIER_ENABLE_SPEEDY = GetModConfigData("enable_speedy")
 GLOBAL.TUNING.MODIFIER_ENABLE_LIGHTWEIGHT = GetModConfigData("enable_lightweight")
 GLOBAL.TUNING.MODIFIER_ENABLE_FLEETFOOTED = GetModConfigData("enable_fleetfooted")
-GLOBAL.TUNING.MODIFIER_ENABLE_DULL = GetModConfigData("enable_dull")
-GLOBAL.TUNING.MODIFIER_ENABLE_SLUGGISH = GetModConfigData("enable_sluggish")
-GLOBAL.TUNING.MODIFIER_ENABLE_HEAVYWEIGHT = GetModConfigData("enable_heavyweight")
-GLOBAL.TUNING.MODIFIER_ENABLE_BLUNT = GetModConfigData("enable_blunt")
-GLOBAL.TUNING.MODIFIER_ENABLE_SLOWING = GetModConfigData("enable_slowing")
-
-local ESSENCE_AMOUNTS = {
-	good = {1, 2},
-	rare = {2, 3},
-	epic = {3, 4},
-	legendary = {4, 5},
-	mythic = {6, 7},
-}
-
-local function SpawnEssenceFromRarity(rarity, owner_or_pos)
-	rarity = rarity and string.lower(rarity) or nil
-	local range = rarity and ESSENCE_AMOUNTS[rarity] or nil
-	if range == nil then
-		return
-	end
-	local min, max = range[1], range[2]
-	local count = math.random(min, max)
-	if count <= 0 then
-		return
-	end
-	local x, y, z = 0, 0, 0
-	if owner_or_pos and owner_or_pos.Transform then
-		x, y, z = owner_or_pos.Transform:GetWorldPosition()
-	elseif type(owner_or_pos) == "table" then
-		x, y, z = owner_or_pos.x or 0, owner_or_pos.y or 0, owner_or_pos.z or 0
-	end
-	for _ = 1, count do
-		local essence = GLOBAL.SpawnPrefab("modifier_essence")
-		if essence ~= nil then
-			if owner_or_pos ~= nil and owner_or_pos.components ~= nil and owner_or_pos.components.inventory ~= nil then
-				if not owner_or_pos.components.inventory:GiveItem(essence) then
-					essence.Transform:SetPosition(x, y, z)
-				end
-			else
-				essence.Transform:SetPosition(x, y, z)
-			end
-		end
-	end
-end
-
-GLOBAL.SpawnEssenceFromRarity = SpawnEssenceFromRarity
+GLOBAL.TUNING.MODIFIER_ENABLE_EXECUTIONERS = GetModConfigData("enable_executioners")
+GLOBAL.TUNING.MODIFIER_ENABLE_DUELISTS = GetModConfigData("enable_duelists")
+GLOBAL.TUNING.MODIFIER_ENABLE_REAPING = GetModConfigData("enable_reaping")
+GLOBAL.TUNING.MODIFIER_ENABLE_MOONSTRUCK = GetModConfigData("enable_moonstruck")
+GLOBAL.TUNING.MODIFIER_ENABLE_SELF_MENDING = GetModConfigData("enable_self_mending")
+GLOBAL.TUNING.MODIFIER_ENABLE_UMBRAL = GetModConfigData("enable_umbral")
+GLOBAL.TUNING.MODIFIER_ENABLE_FELLERS = GetModConfigData("enable_fellers")
+GLOBAL.TUNING.MODIFIER_ENABLE_PROSPECTORS = GetModConfigData("enable_prospectors")
+GLOBAL.TUNING.MODIFIER_ENABLE_LABORERS = GetModConfigData("enable_laborers")
+GLOBAL.TUNING.MODIFIER_ENABLE_RESONANT = GetModConfigData("enable_resonant")
+GLOBAL.TUNING.MODIFIER_ENABLE_RADIANT = GetModConfigData("enable_radiant")
+GLOBAL.TUNING.MODIFIER_ENABLE_WARMING = GetModConfigData("enable_warming")
+GLOBAL.TUNING.MODIFIER_ENABLE_BRISK = GetModConfigData("enable_brisk")
+GLOBAL.TUNING.MODIFIER_ENABLE_GEOTHERMAL = GetModConfigData("enable_geothermal")
+GLOBAL.TUNING.MODIFIER_ENABLE_DAPPER = GetModConfigData("enable_dapper")
+GLOBAL.TUNING.MODIFIER_ENABLE_INSULATING = GetModConfigData("enable_insulating")
+GLOBAL.TUNING.MODIFIER_ENABLE_SHADED = GetModConfigData("enable_shaded")
+GLOBAL.TUNING.MODIFIER_ENABLE_SATIATING = GetModConfigData("enable_satiating")
+GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_COURAGE = GetModConfigData("enable_song_of_courage")
+GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_WARMTH = GetModConfigData("enable_song_of_warmth")
+GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_HASTE = GetModConfigData("enable_song_of_haste")
+GLOBAL.TUNING.MODIFIER_ENABLE_SONG_OF_STONE = GetModConfigData("enable_song_of_stone")
+GLOBAL.TUNING.MODIFIER_ENABLE_GAMBLERS = GetModConfigData("enable_gamblers")
 
 -- Boss features
 GLOBAL.TUNING.MODIFIER_ENABLE_BOSS_SLOWING = GetModConfigData("enable_boss_slowing")
@@ -142,7 +109,7 @@ if GLOBAL.KnownModIndex:IsModEnabled("workshop-488009136") then--make bows use o
 	function GLOBAL.ARCHERYFUNCS.CalcFinalDamage(inst, attacker, target, applydodelta)
 		local dmg = oldBowCalcFinalDamage(inst, attacker, target, applydodelta)
 		local bow
-		if attacker then
+		if attacker and attacker.components.inventory then
 			bow = attacker.components.inventory.equipslots.hands
 		end
 		return dmg * (1 + (bow and bow.modifier_dmg or 0))
@@ -152,6 +119,7 @@ end
 modimport("modifiers/languagefix.lua")
 
 modimport("modifiers/effects.lua")
+modimport("modifiers/enchant_list.lua")--placement rules: which items each enchant is allowed to roll on
 modimport("modifiers/strings.lua")
 
 AddReplicableComponent("modifier")
@@ -182,6 +150,44 @@ AddComponentAction("USEITEM", "inventoryitem", function(inst, doer, target, acti
 		table.insert(actions, actClean)
 	end
 end)
+
+local function ConsolePlayer()
+	if GLOBAL.ConsoleCommandPlayer ~= nil then
+		local player = GLOBAL.ConsoleCommandPlayer()
+		if player ~= nil and player:IsValid() then
+			return player
+		end
+	end
+	if GLOBAL.ThePlayer ~= nil and GLOBAL.ThePlayer:IsValid() then
+		return GLOBAL.ThePlayer
+	end
+	if GLOBAL.AllPlayers ~= nil and #GLOBAL.AllPlayers > 0 then
+		for _, player in ipairs(GLOBAL.AllPlayers) do
+			if player ~= nil and player:IsValid() then
+				return player
+			end
+		end
+	end
+	return nil
+end
+
+local function GiveScroll(player, rarity, infinite)
+	player = player or ConsolePlayer()
+	if player == nil or player.components == nil or player.components.inventory == nil then
+		return
+	end
+	local scroll = GLOBAL.SpawnPrefab("enchantedpapyrus")
+	if scroll and scroll.components.modifier_scroll then
+		scroll.components.modifier_scroll:SetRarity(rarity)
+		if infinite then
+			scroll.components.modifier_scroll:SetInfinite(true)
+		end
+		if not player.components.inventory:GiveItem(scroll) then
+			local x, y, z = player.Transform:GetWorldPosition()
+			scroll.Transform:SetPosition(x, y, z)
+		end
+	end
+end
 
 local actDisassemble = AddAction("MOD_DISASSEMBLE", GLOBAL.STRINGS.ACTIONS.MOD_DISASSEMBLE, function(act)
 	if not act or not act.doer or not act.invobject then
@@ -239,6 +245,12 @@ actApplyScroll.priority = 20
 
 local actCombineScroll = AddAction("MOD_COMBINE_SCROLL", GLOBAL.STRINGS.ACTIONS.MOD_COMBINE_SCROLL, function(act)
 	if act == nil or act.invobject == nil or act.target == nil then
+		return false
+	end
+	if act.invobject == act.target then--hardening: a modified client can request combining a scroll with itself (1-scroll upgrade + double Remove)
+		return false
+	end
+	if act.invobject:HasTag("modifier_scroll_infinite") or act.target:HasTag("modifier_scroll_infinite") then--debug scrolls can't be combined into real next-tier scrolls
 		return false
 	end
 	local scroll_a = act.invobject.components.modifier_scroll
@@ -302,7 +314,7 @@ AddComponentAction("USEITEM", "modifier_scroll", function(inst, doer, target, ac
 		return
 	end
 
-	if target:HasTag("modifier_scroll_item") and target.replica and target.replica.modifier_scroll and inst.replica and inst.replica.modifier_scroll then
+	if target ~= inst and target:HasTag("modifier_scroll_item") and not inst:HasTag("modifier_scroll_infinite") and not target:HasTag("modifier_scroll_infinite") and target.replica and target.replica.modifier_scroll and inst.replica and inst.replica.modifier_scroll then
 		local r1 = inst.replica.modifier_scroll:GetRarity()
 		local r2 = target.replica.modifier_scroll:GetRarity()
 		if r1 ~= nil and r2 ~= nil and string.lower(r1) == string.lower(r2) and NextRarity(string.lower(r1)) ~= nil then
@@ -395,49 +407,6 @@ for _, prefab in ipairs(DRYINGRACK_PREFABS) do
 	end)
 end
 
-local function ConsolePlayer()
-	if GLOBAL.ConsoleCommandPlayer ~= nil then
-		local player = GLOBAL.ConsoleCommandPlayer()
-		if player ~= nil and player:IsValid() then
-			return player
-		end
-	end
-	if GLOBAL.ThePlayer ~= nil and GLOBAL.ThePlayer:IsValid() then
-		return GLOBAL.ThePlayer
-	end
-	if GLOBAL.AllPlayers ~= nil and #GLOBAL.AllPlayers > 0 then
-		for _, player in ipairs(GLOBAL.AllPlayers) do
-			if player ~= nil and player:IsValid() then
-				return player
-			end
-		end
-	end
-	return nil
-end
-
-local function RemoteExecIfClient(fnstr)
-	if GLOBAL.TheWorld ~= nil and not GLOBAL.TheWorld.ismastersim and GLOBAL.c_remote ~= nil then
-		GLOBAL.c_remote(fnstr)
-		return true
-	end
-	return false
-end
-
-local function GiveScroll(player, rarity)
-	player = player or ConsolePlayer()
-	if player == nil or player.components == nil or player.components.inventory == nil then
-		return
-	end
-	local scroll = GLOBAL.SpawnPrefab("enchantedpapyrus")
-	if scroll and scroll.components.modifier_scroll then
-		scroll.components.modifier_scroll:SetRarity(rarity)
-		if not player.components.inventory:GiveItem(scroll) then
-			local x, y, z = player.Transform:GetWorldPosition()
-			scroll.Transform:SetPosition(x, y, z)
-		end
-	end
-end
-
 GLOBAL.c_spawnscroll = function(rarity, count, player)
 	player = player or ConsolePlayer()
 	rarity = type(rarity) == "string" and string.lower(rarity) or nil
@@ -463,6 +432,16 @@ end
 for _, rarity in ipairs(SCROLL_RARITIES) do
 	GLOBAL["c_spawnscroll_" .. rarity] = function(count, player)
 		GLOBAL.c_spawnscroll(rarity, count, player)
+	end
+end
+
+GLOBAL.c_spawninfinitescrolls = function(player)--one never-consumed scroll of every rarity (debug/testing)
+	player = player or ConsolePlayer()
+	if player == nil then
+		return
+	end
+	for _, rarity in ipairs(SCROLL_RARITIES) do
+		GiveScroll(player, rarity, true)
 	end
 end
 

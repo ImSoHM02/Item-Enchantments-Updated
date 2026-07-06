@@ -1,6 +1,6 @@
 local assets =
 {
-    Asset("ANIM", "anim/papyrus.zip"),
+    --no Asset needed: the base-game papyrus bank/build is always loaded
 }
 
 local function fn()
@@ -26,16 +26,17 @@ local function fn()
 
     inst:AddComponent("inspectable")
     inst.components.inspectable.descriptionfn = function(inst)
-        local rarity = inst.components.modifier_scroll and inst.components.modifier_scroll:GetReadableRarity() or nil
+        local scroll = inst.components.modifier_scroll
+        local rarity = scroll and scroll:GetReadableRarity() or nil
+        local suffix = (scroll and scroll:IsInfinite()) and " It looks inexhaustible." or ""
         if rarity then
-            return "It hums with a " .. rarity .. " enchantment."
+            return "It hums with a " .. rarity .. " enchantment." .. suffix
         end
-        return "It hums with latent magic."
+        return "It hums with latent magic." .. suffix
     end
 
     inst:AddComponent("inventoryitem")
     inst.components.inventoryitem.imagename = "papyrus"
-    inst.components.inventoryitem.atlasname = "images/inventoryimages.xml"
 
     inst:AddComponent("modifier_scroll")
 

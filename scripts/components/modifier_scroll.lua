@@ -1,11 +1,20 @@
 local _G = _G
 local env = (_G and rawget(_G, "GLOBAL")) or _G
 local STRINGS = env and env.STRINGS or nil
-local GetBestPossibleRarity = env and env.GetBestPossibleRarity or nil
 
-if STRINGS == nil or GetBestPossibleRarity == nil then
+if STRINGS == nil then
     error("modifier_scroll missing required globals")
     return
+end
+
+local function GetBestPossibleRarityFn()
+    --GetBestPossibleRarity is defined by components/modifier.lua, which loads lazily on the first
+    --AddComponent("modifier"). A scroll can be the first mod entity to load (saved scroll, or
+    --c_spawnscroll on a fresh world), so resolve at call time and force-load if needed.
+    if env.GetBestPossibleRarity == nil then
+        require("components/modifier")
+    end
+    return env.GetBestPossibleRarity
 end
 
 local Scroll = Class(function(self, inst)
@@ -31,12 +40,29 @@ function Scroll:GetRarity()
     return self.stored_rarity
 end
 
+function Scroll:SetInfinite(infinite)
+    self.infinite = infinite and true or nil
+    if self.infinite then
+        self.inst:AddTag("modifier_scroll_infinite")
+    else
+        self.inst:RemoveTag("modifier_scroll_infinite")
+    end
+end
+
+function Scroll:IsInfinite()
+    return self.infinite == true
+end
+
 function Scroll:CanApplyTo(target)
     if target == nil or target.components == nil or target.components.modifier == nil then
         return false
     end
     local rarity = self:GetRarity()
     if rarity == nil then
+        return false
+    end
+    local GetBestPossibleRarity = GetBestPossibleRarityFn()
+    if GetBestPossibleRarity == nil then
         return false
     end
     local best = GetBestPossibleRarity(target, rarity)
@@ -59,7 +85,9 @@ function Scroll:ApplyTo(target, doer)
         doer.components.talker:Say("Enchanted with a " .. (rarity_name or "mysterious") .. " modifier.")
     end
 
-    self.inst:Remove()
+    if not self.infinite then--debug/creative scrolls survive being applied
+        self.inst:Remove()
+    end
     return true
 end
 
@@ -68,14 +96,17 @@ function Scroll:GetReadableRarity()
 end
 
 function Scroll:OnSave()
-    if self.stored_rarity then
-        return { rarity = self.stored_rarity }
+    if self.stored_rarity or self.infinite then
+        return { rarity = self.stored_rarity, infinite = self.infinite }
     end
 end
 
 function Scroll:OnLoad(data)
     if data and data.rarity then
         self:SetRarity(data.rarity)
+    end
+    if data and data.infinite then
+        self:SetInfinite(true)
     end
 end
 

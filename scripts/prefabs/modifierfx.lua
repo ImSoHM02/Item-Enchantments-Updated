@@ -32,12 +32,22 @@ local function OnSpawn(inst, target, rarity)
     local x,y,z = inst.Transform:GetWorldPosition()
     local count = 0.1
     inst.risetask = inst:DoPeriodicTask(0, function()--probably better off to just do this via animation?
+        if target == nil or not target:IsValid() then--recipient died/left mid-flight
+            inst.risetask:Cancel()
+            inst:Remove()
+            return
+        end
         inst.Transform:SetPosition(x,count,z)
         count = count + 0.3 + (count > 6 and 0.2 or 0)
         if count > 20 then
             inst.risetask:Cancel()
             target:AddChild(inst)
             inst.falltask = inst:DoPeriodicTask(0, function()
+                if not target:IsValid() then
+                    inst.falltask:Cancel()
+                    inst:Remove()
+                    return
+                end
                 inst.Transform:SetPosition(0,count,0)
                 count = count - 0.3 + (count < 5 and -0.1 or 0)
                 if count <= 0.5 then

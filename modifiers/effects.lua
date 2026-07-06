@@ -49,8 +49,37 @@ local function effect_resourcelust(inst, tool, target, action)
 	end
 end
 
+local function effect_prospector(worker, tool, target, action, workable)
+	if action ~= GLOBAL.ACTIONS.MINE or workable == nil or (workable.workleft or 1) > 0 or math.random() >= 0.1 then--only pays out when the mining finishes
+		return
+	end
+	if worker == nil or not worker:IsValid() then return end
+	local prize = GLOBAL.weighted_random_choice({goldnugget = 60, redgem = 12, bluegem = 12, purplegem = 8, orangegem = 4, yellowgem = 2, greengem = 2})
+	local item = prize ~= nil and GLOBAL.SpawnPrefab(prize) or nil
+	if item == nil then return end
+	if worker.components.inventory == nil or not worker.components.inventory:GiveItem(item) then
+		item.Transform:SetPosition(worker.Transform:GetWorldPosition())
+	end
+	worker:SpawnChild("buff_fx")
+end
+
+local function effect_resonant(worker, tool, target, action, workable)
+	if tool.modifier_resonant_echoing then return end--the echo below re-enters this hook
+	tool.modifier_resonant_count = (tool.modifier_resonant_count or 0) + 1
+	if tool.modifier_resonant_count < 3 then return end
+	tool.modifier_resonant_count = 0
+	if target and target:IsValid() and workable and (workable.workleft or 0) > 0 then
+		tool.modifier_resonant_echoing = true
+		workable:WorkedBy(worker, (tool.components.tool and tool.components.tool:GetEffectiveness(action)) or 1)--free echo hit; WorkedBy itself consumes no durability
+		tool.modifier_resonant_echoing = nil
+		if worker and worker:IsValid() then
+			worker:SpawnChild("buff_fx")
+		end
+	end
+end
+
 local function effect_lifesteal(inst, weapon, target)
-	if math.random() < 0.25 then return end--only 25% chance of lifestealing
+	if math.random() >= 0.25 then return end--only 25% chance of lifestealing
 	local stealpercent = 0.03
 	if not target.brain then--no brain, no gain
 		stealpercent = 0
@@ -148,6 +177,56 @@ local function effect_hemorrhage(inst, weapon, target)
 	ApplyBleed(target, inst, weapon)
 end
 
+local function effect_executioner(inst, weapon, target)
+	if target == nil or not target:IsValid() or target.components.health == nil or target.components.health:IsDead() or target.components.combat == nil then
+		return
+	end
+	if target.components.health:GetPercent() > 0.25 then return end
+	local dmg = weapon.components.weapon and weapon.components.weapon.damage or nil
+	if type(dmg) ~= "number" or dmg <= 0 then return end--variable-damage weapons store a function here
+	target.components.combat:GetAttacked(inst, dmg, weapon)--+100% weapon damage below 25% health
+end
+
+local function effect_duelist(inst, weapon, target)
+	if target == nil or not target:IsValid() or target.components.health == nil or target.components.health:IsDead() or target.components.combat == nil then
+		return
+	end
+	local dmg = weapon.components.weapon and weapon.components.weapon.damage or nil
+	if type(dmg) ~= "number" or dmg <= 0 then return end
+	local x, y, z = inst.Transform:GetWorldPosition()
+	local ents = TheSim:FindEntities(x, y, z, 15, {"_combat"})
+	local threats = 0
+	for i, v in ipairs(ents) do
+		if v ~= inst and v.components.combat and v.components.combat.target == inst then
+			threats = threats + 1
+			if threats > 1 then break end
+		end
+	end
+	if threats == 1 then--only rewards a fair one-on-one duel
+		target.components.combat:GetAttacked(inst, dmg * 0.35, weapon)
+	end
+end
+
+local function effect_reaping(inst, weapon, target)
+	if target == nil or target.components == nil or target.components.health == nil or not target.components.health:IsDead() or target.components.lootdropper == nil then
+		return
+	end
+	if math.random() >= 0.15 then return end--15% chance of an extra loot roll on kill
+	local loot = target.components.lootdropper:GenerateLoot()
+	if loot == nil or #loot == 0 then return end
+	local pt = target:IsValid() and target:GetPosition() or inst:GetPosition()
+	target.components.lootdropper:SpawnLootPrefab(loot[math.random(#loot)], pt)
+end
+
+local function moonstruck_update(inst)
+	if inst.components.planardamage == nil then return end
+	local base = 0
+	if GLOBAL.TheWorld.state.isnight then
+		base = GLOBAL.TheWorld.state.isfullmoon and 80 or 40
+	end
+	inst.components.planardamage:SetBaseDamage(base)
+end
+
 local function walkable_tile(tile)
 	if tile == nil or tile == GROUND.IMPASSABLE or tile == GROUND.INVALID or (tile >= GROUND.OCEAN_START and tile <= GROUND.OCEAN_END ) then
 		return false
@@ -159,7 +238,7 @@ end
 
 local function effect_telesick(inst, modifiedItem, nilORtarget, bypass)
 	if inst == nil then return end
-	if not bypass and math.random() > 0.3 then return end--70% chance of telepoofing
+	if not bypass and math.random() > 0.3 then return end--30% chance of telepoofing
 	local x,y,z = inst.Transform:GetWorldPosition()
 	local count = 0
 	local nx = x
@@ -178,7 +257,7 @@ local function effect_telesick(inst, modifiedItem, nilORtarget, bypass)
 end
 
 local function effect_thorns(inst, item, attacker, data)--{damage, attacker.weapon, stimuli}
-	if attacker and attacker.components.combat and attacker.components.health and not attacker.components.health:IsDead() then
+	if attacker and attacker.components.combat and attacker.components.health and not attacker.components.health:IsDead() and data and type(data.damage) == "number" then
 		local extramult = 0
 		if item.components.armor then
 			extramult = extramult + (item.components.armor.absorb_percent/10)
@@ -227,54 +306,107 @@ local function effect_solar(item, toggled_on)
 	end
 end
 
-function GLOBAL.GetBearing(p1, p2)--target, watcher
-    local dx = (p1.x or p1[1]) - (p2.x or p2[1])
-    local dy = (p1.y or p1[2]) - (p2.y or p2[2])
-    local dz = (p1.z or p1[3]) - (p2.z or p2[3])
-    local dist = dx*dx+dy*dy+dz*dz
-	
-	local angle = 360 - (math.atan(dz/dx) * 180 / math.pi)
-	if p1.x < p2.x then
-		return angle 
-	else
-		return angle - 180
+local function radiant_getlight(item)
+	return item.Light or (item._light ~= nil and item._light.Light or nil)--lanterns keep their light on a child entity
+end
+
+local function effect_radiant(item, toggled_on)
+	if toggled_on then
+		item:DoTaskInTime(0, function()--lanterns spawn their light child during turnon; wait a frame so it exists
+			if not item:HasTag("modifier_radiant") then return end--disenchanted in the same frame
+			if item.components.fueled == nil or not item.components.fueled.consuming then return end--turned back off already
+			local light = radiant_getlight(item)
+			if light == nil or light.GetRadius == nil then return end
+			if item.modifier_radiant_prev == nil then
+				item.modifier_radiant_prev = light:GetRadius()
+			end
+			light:SetRadius(item.modifier_radiant_prev * 1.3)
+		end)
+	elseif item.modifier_radiant_prev ~= nil then
+		local light = radiant_getlight(item)
+		if light ~= nil and light.SetRadius ~= nil then
+			light:SetRadius(item.modifier_radiant_prev)
+		end
+		item.modifier_radiant_prev = nil--if the light child was already removed, the next one spawns at default radius anyway
+	end
+end
+
+local function effect_warming(item, toggled_on)
+	if toggled_on then
+		if item.components.heater == nil then
+			item:AddComponent("heater")
+			item.components.heater.heat = 25
+			item.modifier_heater_added = true
+		end
+	elseif item.modifier_heater_added then
+		item:RemoveComponent("heater")
+		item.modifier_heater_added = nil
+	end
+end
+
+local function effect_brisk(item, toggled_on)
+	if toggled_on then
+		if item.components.heater == nil then
+			item:AddComponent("heater")
+			item.components.heater.heat = -10
+			item.components.heater:SetThermics(false, true)--endothermic + negative heat cools, like the cold fire
+			item.modifier_heater_added = true
+		end
+	elseif item.modifier_heater_added then
+		item:RemoveComponent("heater")
+		item.modifier_heater_added = nil
+	end
+end
+
+local function effect_geothermal(item, toggled_on)
+	if not toggled_on then--toggled off
+		if item.geothermaltask ~= nil then
+			item.geothermaltask:Cancel()
+			item.geothermaltask = nil
+		end
+		item.geothermaltask = item:DoPeriodicTask(15, function()
+			if item.components.fueled.currentfuel >= item.components.fueled.maxfuel then return end
+			local source = item.components.inventoryitem and item.components.inventoryitem:GetGrandOwner() or nil--carried: scan around the carrier
+			if source == nil and not item:HasTag("INLIMBO") then
+				source = item
+			end
+			if source == nil then return end
+			local x, y, z = source.Transform:GetWorldPosition()
+			for i, v in ipairs(TheSim:FindEntities(x, y, z, 4, {"HASHEATER"})) do
+				if v ~= item then
+					item.components.fueled:DoDelta(0.02 * item.components.fueled.maxfuel)
+					item:SpawnChild("buff_fx"):anim("positive", { build = "buff_fx", symbol = "repair"})
+					return
+				end
+			end
+		end)
+	else--toggled on
+		if item.geothermaltask ~= nil then
+			item.geothermaltask:Cancel()
+			item.geothermaltask = nil
+		end
 	end
 end
 
 local function effect_ghoststrike(inst, weapon, target)
 	if target == nil or weapon == nil or inst == nil or (inst.components.health and inst.components.health:IsDead()) then return end
-	local ghost = GLOBAL.SpawnPrefab(inst.prefab)
-	ghost:AddTag("FX")
-	ghost:AddTag("NOCLICK")
-	ghost:AddTag("notarget")
 
 	weapon:AddTag("modifier_ghoststrike_oncooldown")
-	weapon:DoTaskInTime(2.5, function() 
-		if weapon and weapon:IsValid() then 
-			weapon:RemoveTag("modifier_ghoststrike_oncooldown") 
-		end 
+	weapon:DoTaskInTime(2.5, function()
+		if weapon and weapon:IsValid() then
+			weapon:RemoveTag("modifier_ghoststrike_oncooldown")
+		end
 	end)
 
-	GLOBAL.RemovePhysicsColliders(ghost)
+	--lightweight FX clone: a single FX entity reusing the player's loaded build,
+	--instead of spawning a full player prefab + real copies of every equipped item.
+	local ghost = GLOBAL.SpawnPrefab("ghoststrikefx")
+	if ghost == nil then return end
+	ghost:OnSpawn(inst, weapon)
 
-	ghost.AnimState:SetMultColour(0.4, 0.4, 0.4, 0.4)--ghostly
-
-	for k,v in pairs(inst.components.skinner and inst.components.skinner:GetClothing() or {}) do
-		ghost.components.skinner:SetClothing(v)--skins
-	end
-	for k,v in pairs(inst.components.inventory and inst.components.inventory.equipslots or {}) do
-		ghost.components.inventory:Equip(GLOBAL.SpawnPrefab(v.prefab))--equipment
-	end
 	local tx, ty, tz = target.Transform:GetWorldPosition()
-	ghost.Transform:SetPosition(tx + math.random(-1, 1), ty, tz + math.random(-1,1))
-	ghost.Transform:SetRotation(GLOBAL.GetBearing(ghost:GetPosition(), target:GetPosition()))--(inst.Transform:GetRotation() - 180)
-	ghost:DoTaskInTime(0, function() 
-		ghost.AnimState:PlayAnimation("atk")
-		ghost:ListenForEvent("animover", function() 
-			GLOBAL.SpawnPrefab("small_puff").Transform:SetPosition(ghost.Transform:GetWorldPosition())--y+0.1?
-			ghost:Remove()
-		end)
-	end)
+	ghost.Transform:SetPosition(tx + (math.random() * 2 - 1), ty, tz + (math.random() * 2 - 1))--float offsets; integer math.random(-1,1) landed exactly on the target 1/9 of the time (NaN rotation)
+	ghost:ForceFacePoint(tx, ty, tz)
 end
 
 
@@ -284,7 +416,7 @@ local function play_song(inst, musician, song)
 	for guid, listener in ipairs(ents) do
 		if not song.sucks or GLOBAL.TheNet:GetPVPEnabled() or not listener:HasTag("player") then--make sure to not help enemy players in pvp
 			if not song.periodic or song.periodic == 0 then
-				song.fn(inst)
+				song.fn(listener)
 			else	
 				if listener[song.name .. "_pt"] == nil then--if nil, start ticking the task, if not, keep ticking
 					listener[song.name .. "_pt"] = listener:DoPeriodicTask(song.periodic or 1, song.fn)
@@ -376,22 +508,106 @@ local function effect_tauntsong(inst, musician)
 	play_song(inst, musician, song)
 end
 
-local function effect_collisionproj_throw(inst, owner, target)
-	if not inst:IsValid() then return end
-	if inst.mod_collision then
-		effect_collisionproj_stop(inst, owner)
-	end
-	inst.mod_collision_targets = {}
-	inst.mod_collision = inst:DoPeriodicTask(0, function() 
-		local x,y,z = inst.Transform:GetWorldPosition()
-		local targets = TheSim:FindEntities(x,y,z, 1, {"_combat"})
-		for k,v in pairs(targets) do
-			if v ~= owner and not v.components.health:IsDead() and (GLOBAL.TheNet:GetPVPEnabled() or not v:HasTag("player")) and not GLOBAL.table.contains(inst.mod_collision_targets, v.GUID) then
-				table.insert(inst.mod_collision_targets, v.GUID)
-				v.components.combat:GetAttacked(owner, inst.components.weapon.damage)
+local function effect_couragesong(inst, musician)
+	local song = {
+		name = "couragesong",
+		periodic = 0,
+		duration = 0,
+		audience = { "player" },
+		haters = { "INLIMBO" },
+		fn = function(listener)
+			if listener:IsValid() and listener.components.combat then
+				listener.components.combat.externaldamagemultipliers:SetModifier(listener, 1.15, "modifier_couragesong")--listener is its own source, so cleanup stays local
+				if listener.modifier_couragesong_task then--replaying refreshes the duration
+					listener.modifier_couragesong_task:Cancel()
+					listener.modifier_couragesong_task = nil
+				end
+				listener.modifier_couragesong_task = listener:DoTaskInTime(20, function()
+					listener.modifier_couragesong_task = nil
+					if listener.components.combat then
+						listener.components.combat.externaldamagemultipliers:RemoveModifier(listener, "modifier_couragesong")
+					end
+				end)
+				listener:SpawnChild("buff_fx")
 			end
 		end
-	end)	
+	}
+	play_song(inst, musician, song)
+end
+
+local function effect_warmthsong(inst, musician)
+	local song = {
+		name = "warmthsong",
+		periodic = 2.5,
+		duration = 30,
+		audience = { "player" },
+		haters = { "INLIMBO" },
+		fn = function(listener)
+			if listener:IsValid() and listener.components.temperature then
+				local cur = listener.components.temperature:GetCurrent()
+				if cur < 20 then--nudge towards the comfortable 20-40 band
+					listener.components.temperature:DoDelta(math.min(2, 20 - cur))
+				elseif cur > 40 then
+					listener.components.temperature:DoDelta(math.max(-2, 40 - cur))
+				end
+			end
+		end
+	}
+	play_song(inst, musician, song)
+end
+
+local function effect_hastesong(inst, musician)
+	local song = {
+		name = "hastesong",
+		periodic = 0,
+		duration = 0,
+		audience = { "player" },
+		haters = { "INLIMBO" },
+		fn = function(listener)
+			if listener:IsValid() and listener.components.locomotor then
+				listener.components.locomotor:SetExternalSpeedMultiplier(listener, "modifier_hastesong", 1.25)
+				if listener.modifier_hastesong_task then--replaying refreshes the duration
+					listener.modifier_hastesong_task:Cancel()
+					listener.modifier_hastesong_task = nil
+				end
+				listener.modifier_hastesong_task = listener:DoTaskInTime(15, function()
+					listener.modifier_hastesong_task = nil
+					if listener.components.locomotor then
+						listener.components.locomotor:RemoveExternalSpeedMultiplier(listener, "modifier_hastesong")
+					end
+				end)
+				listener:SpawnChild("buff_fx"):anim("positive", { build = "buff_fx", symbol = "speed"})
+			end
+		end
+	}
+	play_song(inst, musician, song)
+end
+
+local function effect_stonesong(inst, musician)
+	local song = {
+		name = "stonesong",
+		periodic = 0,
+		duration = 0,
+		audience = { "player" },
+		haters = { "INLIMBO" },
+		fn = function(listener)
+			if listener:IsValid() and listener.components.combat then
+				listener.components.combat.externaldamagetakenmultipliers:SetModifier(listener, 0.5, "modifier_stonesong")
+				if listener.modifier_stonesong_task then--replaying refreshes the duration
+					listener.modifier_stonesong_task:Cancel()
+					listener.modifier_stonesong_task = nil
+				end
+				listener.modifier_stonesong_task = listener:DoTaskInTime(10, function()
+					listener.modifier_stonesong_task = nil
+					if listener.components.combat then
+						listener.components.combat.externaldamagetakenmultipliers:RemoveModifier(listener, "modifier_stonesong")
+					end
+				end)
+				listener:SpawnChild("buff_fx")
+			end
+		end
+	}
+	play_song(inst, musician, song)
 end
 
 local function effect_collisionproj_stop(inst, owner)
@@ -403,48 +619,56 @@ local function effect_collisionproj_stop(inst, owner)
 	inst.mod_collision_targets = nil
 end
 
-local function effect_rushing(inst, weapon, target, extra)
-	if weapon:IsValid() and weapon.components.equippable then
-		weapon.components.equippable.walkspeedmult = 1.25
-		if weapon.mod_rushing then
-			weapon.mod_rushing:Cancel()
-			weapon.mod_rushing = nil
-		end
-		weapon.mod_rushing = weapon:DoTaskInTime(5, function()
-			weapon.components.equippable.walkspeedmult = 1
-			weapon.mod_rushing = nil
-		end)
+local function effect_collisionproj_throw(inst, owner, target)
+	if not inst:IsValid() then return end
+	if inst.mod_collision then
+		effect_collisionproj_stop(inst, owner)
 	end
+	inst.mod_collision_targets = {}
+	inst.mod_collision = inst:DoPeriodicTask(0, function() 
+		local x,y,z = inst.Transform:GetWorldPosition()
+		local targets = TheSim:FindEntities(x,y,z, 1, {"_combat"})
+		for k,v in pairs(targets) do
+			if v ~= owner and v.components.health and not v.components.health:IsDead() and v.components.combat and (GLOBAL.TheNet:GetPVPEnabled() or not v:HasTag("player")) and not GLOBAL.table.contains(inst.mod_collision_targets, v.GUID) then
+				table.insert(inst.mod_collision_targets, v.GUID)
+				v.components.combat:GetAttacked(owner, inst.components.weapon.damage)
+			end
+		end
+	end)	
 end
 
-local function effect_slowing(inst, weapon, target, extra)
+local function effect_rushing(inst, weapon, target, extra)
 	if weapon:IsValid() and weapon.components.equippable then
-		weapon.components.equippable.walkspeedmult = 0.75
 		if weapon.mod_rushing then
 			weapon.mod_rushing:Cancel()
 			weapon.mod_rushing = nil
+		else--capture the equip's real mult once, before we overwrite it
+			weapon.mod_rushing_prevmult = weapon.components.equippable.walkspeedmult
 		end
+		weapon.components.equippable.walkspeedmult = 1.25
 		weapon.mod_rushing = weapon:DoTaskInTime(5, function()
-			weapon.components.equippable.walkspeedmult = 1
+			weapon.components.equippable.walkspeedmult = weapon.mod_rushing_prevmult or 1
+			weapon.mod_rushing_prevmult = nil
 			weapon.mod_rushing = nil
 		end)
 	end
 end
 
 local function effect_electric_thorns(inst, item, attacker, data)--{damage, attacker.weapon, stimuli}
-	if inst and attacker and GLOBAL.GetTableSize(inst.orbs) > 0 then
+	if inst and attacker and attacker.components and GLOBAL.GetTableSize(inst.orbs) > 0 then
 		effect_telesick(attacker, item, nil, true)
 
-		local atkhp = attacker.components.health.currenthealth
+		local atkhealth = attacker.components.health
+		local atkhp = atkhealth and atkhealth.currenthealth
 		GLOBAL.TheWorld:PushEvent("ms_sendlightningstrike", attacker:GetPosition() or {x=0, y=0, z=0})
 
 		if attacker.components.burnable and math.random() < 0.3 then
 			attacker.components.burnable:Ignite()
 		end
-		if atkhp == attacker.components.health.currenthealth then--if lightning did no dmg
-			if attacker ~= inst then
+		if atkhealth and atkhp == atkhealth.currenthealth then--if lightning did no dmg
+			if attacker ~= inst and attacker.components.combat then
 				attacker.components.combat:GetAttacked(inst, 25)
-			else
+			elseif attacker == inst and inst.components.health then
 				inst.components.health:DoDelta(-15)
 			end
 		end
@@ -489,7 +713,7 @@ local function effect_electric_thorns_on(inst, data)
 	owner.mod_orbs = owner:DoPeriodicTask(12, function()
 		local orbcount = GLOBAL.GetTableSize(owner.orbs)
 		if orbcount < 7 then
-			inst.modifier_resist = 0.99
+			inst.modifier_resist = 0.4--the charging orbs ward off some damage
 			table.insert(owner.orbs, owner:SpawnChild("orbfx"))
 		else
 			inst.modifier_resist = nil
@@ -502,6 +726,34 @@ local function effect_electric_thorns_on(inst, data)
 			end)
 		end
 	end)
+end
+
+local function umbral_release(inst, owner)--drop this item's claim on the owner's shadowdominance tag
+	if owner == nil then return end
+	local sources = owner.modifier_umbral_sources
+	if sources == nil or sources[inst.GUID] == nil then return end
+	sources[inst.GUID] = nil
+	if GLOBAL.next(sources) == nil then
+		owner.modifier_umbral_sources = nil
+		if owner.modifier_umbral_tagged then--only remove the tag if we added it (never strip a real Bone Helm's)
+			owner.modifier_umbral_tagged = nil
+			if owner:IsValid() then
+				owner:RemoveTag("shadowdominance")
+			end
+		end
+	end
+end
+
+local function umbral_acquire(inst, owner)
+	if owner == nil or not owner:IsValid() then return end
+	if owner.modifier_umbral_sources == nil then
+		owner.modifier_umbral_sources = {}
+	end
+	owner.modifier_umbral_sources[inst.GUID] = true
+	if not owner:HasTag("shadowdominance") then--re-claims the tag if another source (a real Bone Helm) added it and later dropped it
+		owner:AddTag("shadowdominance")
+		owner.modifier_umbral_tagged = true
+	end
 end
 
 local function effect_unwithering(inst)
@@ -532,7 +784,7 @@ local function removefn(inst, tbl, fn)
 end
 
 ----------Modifier Effects Data----------
-if not table.contains(GLOBALVARS, "modifier_effects") then
+if GLOBAL.rawget(GLOBAL, "modifier_effects") == nil then
 	GLOBAL.modifier_effects = {}
 end
 --[[{
@@ -552,6 +804,17 @@ end
 
 
 local resourceactions = {GLOBAL.ACTIONS.CHOP, GLOBAL.ACTIONS.MINE, GLOBAL.ACTIONS.DIG, GLOBAL.ACTIONS.HAMMER}
+
+local function resourcetoolcheck(inst)--tool with at least one gathering action
+	if inst.components.tool and inst.components.tool.actions then
+		for action, power in pairs(inst.components.tool.actions) do
+			if GLOBAL.table.contains(resourceactions, action) then
+				return true
+			end
+		end
+	end
+	return false
+end
 
 GLOBAL.modifier_effects.finiteuses = {
 	sturdy_1 = {
@@ -636,6 +899,60 @@ GLOBAL.modifier_effects.finiteuses = {
 		end,
 		rarity = "legendary",--not epic like bloodlust, because its easier to farm resources than kills
 	},
+	feller = {
+		checkfn = function(inst)
+			return inst.components.tool ~= nil and inst.components.tool.actions[GLOBAL.ACTIONS.CHOP] ~= nil
+		end,
+		fn = function(inst)
+			inst.modifier_workfn = function(tool, worker, target, action, numworks)
+				if action == GLOBAL.ACTIONS.CHOP then
+					return (numworks or 1) * 2
+				end
+				return numworks
+			end
+		end,
+		unfn = function(inst)
+			inst.modifier_workfn = nil
+		end,
+		rarity = "rare",
+	},
+	prospector = {
+		checkfn = function(inst)
+			return inst.components.tool ~= nil and inst.components.tool.actions[GLOBAL.ACTIONS.MINE] ~= nil
+		end,
+		fn = function(inst)
+			insertfn(inst, "modifier_tool_fns", effect_prospector)
+		end,
+		unfn = function(inst)
+			removefn(inst, "modifier_tool_fns", effect_prospector)
+		end,
+		rarity = "rare",
+	},
+	laborer = {
+		checkfn = resourcetoolcheck,
+		fn = function(inst)
+			inst.modifier_workfn = function(tool, worker, target, action, numworks)
+				return (numworks or 1) + 1
+			end
+		end,
+		unfn = function(inst)
+			inst.modifier_workfn = nil
+		end,
+		rarity = "legendary",
+	},
+	resonant = {
+		checkfn = resourcetoolcheck,
+		fn = function(inst)
+			inst.modifier_resonant_count = 0
+			insertfn(inst, "modifier_tool_fns", effect_resonant)
+		end,
+		unfn = function(inst)
+			inst.modifier_resonant_count = nil
+			inst.modifier_resonant_echoing = nil
+			removefn(inst, "modifier_tool_fns", effect_resonant)
+		end,
+		rarity = "mythic",
+	},
 }
 
 local solarfueltypes = { GLOBAL.FUELTYPE.BURNABLE, GLOBAL.FUELTYPE.WORMLIGHT, GLOBAL.FUELTYPE.CAVE, GLOBAL.FUELTYPE.MAGIC }
@@ -667,7 +984,74 @@ GLOBAL.modifier_effects.fueled = {
 			insertfn(inst, "modifier_consuming_fns", effect_solar)
 		end,
 		unfn = function(inst)
+			if inst.solartask ~= nil then--the recharge task outlives the enchant otherwise (permanent free fuel)
+				inst.solartask:Cancel()
+				inst.solartask = nil
+			end
 			removefn(inst, "modifier_consuming_fns", effect_solar)
+		end,
+		rarity = "epic",
+	},
+	radiant = {
+		--no checkfn: lanterns only spawn their light child while lit, so it can't be detected at roll time;
+		--fueled items without a light are filtered out in enchant_list.lua instead
+		fn = function(inst)
+			insertfn(inst, "modifier_consuming_fns", effect_radiant)
+			if inst.components.fueled.consuming then--already lit when enchanted
+				effect_radiant(inst, true)
+			end
+		end,
+		unfn = function(inst)
+			effect_radiant(inst, false)
+			removefn(inst, "modifier_consuming_fns", effect_radiant)
+		end,
+		rarity = "rare",
+	},
+	warming = {
+		checkfn = function(inst)
+			return inst.components.heater == nil
+		end,
+		fn = function(inst)
+			insertfn(inst, "modifier_consuming_fns", effect_warming)
+			if inst.components.fueled.consuming then--already lit when enchanted
+				effect_warming(inst, true)
+			end
+		end,
+		unfn = function(inst)
+			effect_warming(inst, false)
+			removefn(inst, "modifier_consuming_fns", effect_warming)
+		end,
+		rarity = "rare",
+	},
+	brisk = {
+		checkfn = function(inst)
+			return inst.components.heater == nil
+		end,
+		fn = function(inst)
+			insertfn(inst, "modifier_consuming_fns", effect_brisk)
+			if inst.components.fueled.consuming then--already lit when enchanted
+				effect_brisk(inst, true)
+			end
+		end,
+		unfn = function(inst)
+			effect_brisk(inst, false)
+			removefn(inst, "modifier_consuming_fns", effect_brisk)
+		end,
+		rarity = "rare",
+	},
+	geothermal = {
+		checkfn = function(inst)
+			return inst.components.fueled.accepting and GLOBAL.table.contains(solarfueltypes, inst.components.fueled.fueltype)
+		end,
+		fn = function(inst)
+			insertfn(inst, "modifier_consuming_fns", effect_geothermal)
+		end,
+		unfn = function(inst)
+			if inst.geothermaltask ~= nil then--the refuel task outlives the enchant otherwise (permanent free fuel)
+				inst.geothermaltask:Cancel()
+				inst.geothermaltask = nil
+			end
+			removefn(inst, "modifier_consuming_fns", effect_geothermal)
 		end,
 		rarity = "epic",
 	}
@@ -753,19 +1137,7 @@ GLOBAL.modifier_effects.armor = { --ideas: selfrepairing, selfdegrading, player 
 		unfn = function(inst)
 			inst.components.equippable.walkspeedmult = 1
 		end,
-		rarity = "good"
-	},
-	heavyweight = {
-		checkfn = function(inst)
-			return inst.components.equippable and (inst.components.equippable.walkspeedmult == nil or inst.components.equippable.walkspeedmult == 1)
-		end,
-		fn = function(inst)
-			inst.components.equippable.walkspeedmult = 0.75
-		end,
-		unfn = function(inst)
-			inst.components.equippable.walkspeedmult = 1
-		end,
-		rarity = "rare"
+		rarity = "legendary"
 	},
 	electric_thorns = {
 		checkfn = function(inst)
@@ -785,6 +1157,78 @@ GLOBAL.modifier_effects.armor = { --ideas: selfrepairing, selfdegrading, player 
 			removefn(inst, "modifier_reflect_fns", effect_electric_thorns)
 		end,
 		rarity = "legendary"
+	},
+	selfmending = {
+		fn = function(inst)
+			inst.modifier_selfmend_task = inst:DoPeriodicTask(30, function()
+				if inst.components.equippable and inst.components.equippable:IsEquipped() then
+					return--only mends while resting in the inventory or on the ground
+				end
+				local comp = inst.components.armor or inst.components.finiteuses
+				if comp and comp:GetPercent() < 1 then
+					comp:SetPercent(math.min(1, comp:GetPercent() + 0.01))
+				end
+			end)
+		end,
+		unfn = function(inst)
+			if inst.modifier_selfmend_task then
+				inst.modifier_selfmend_task:Cancel()
+				inst.modifier_selfmend_task = nil
+			end
+		end,
+		rarity = "epic",
+	},
+	umbral = {
+		fn = function(inst)
+			inst.modifier_umbral_onsanity = function()--fires as sanitydelta on the current owner
+				local owner = inst.modifier_umbral_owner
+				if owner == nil or not owner:IsValid() then return end
+				if owner.components.sanity and owner.components.sanity:GetPercent() < 0.3 then
+					umbral_acquire(inst, owner)
+				else
+					umbral_release(inst, owner)
+				end
+			end
+			inst.modifier_umbral_onequipped = function(_, data)
+				local owner = data and data.owner or nil
+				if owner == nil then return end
+				inst.modifier_umbral_owner = owner
+				inst:ListenForEvent("sanitydelta", inst.modifier_umbral_onsanity, owner)
+				inst.modifier_umbral_onsanity()
+			end
+			inst.modifier_umbral_onunequipped = function(_, data)
+				local owner = (data and data.owner) or inst.modifier_umbral_owner
+				inst.modifier_umbral_owner = nil
+				if owner == nil then return end
+				inst:RemoveEventCallback("sanitydelta", inst.modifier_umbral_onsanity, owner)
+				umbral_release(inst, owner)
+			end
+			inst:ListenForEvent("equipped", inst.modifier_umbral_onequipped)
+			inst:ListenForEvent("unequipped", inst.modifier_umbral_onunequipped)
+			if inst.components.equippable and inst.components.equippable:IsEquipped() and inst.components.inventoryitem and inst.components.inventoryitem.owner then--enchanted while worn
+				inst.modifier_umbral_onequipped(inst, { owner = inst.components.inventoryitem.owner })
+			end
+		end,
+		unfn = function(inst)
+			if inst.modifier_umbral_onequipped then
+				inst:RemoveEventCallback("equipped", inst.modifier_umbral_onequipped)
+			end
+			if inst.modifier_umbral_onunequipped then
+				inst:RemoveEventCallback("unequipped", inst.modifier_umbral_onunequipped)
+			end
+			local owner = inst.modifier_umbral_owner
+			if owner ~= nil then--still worn: do the full release
+				if inst.modifier_umbral_onsanity then
+					inst:RemoveEventCallback("sanitydelta", inst.modifier_umbral_onsanity, owner)
+				end
+				umbral_release(inst, owner)
+				inst.modifier_umbral_owner = nil
+			end
+			inst.modifier_umbral_onequipped = nil
+			inst.modifier_umbral_onunequipped = nil
+			inst.modifier_umbral_onsanity = nil
+		end,
+		rarity = "mythic",
 	}
 }
 
@@ -816,12 +1260,12 @@ GLOBAL.modifier_effects.weapon = {
 	sharpness_3 = {
 		checkfn = defaultdmgcheck,
 		fn = function(inst)
-			inst.modifier_dmg = 0.75--75% buff
+			inst.modifier_dmg = 0.5--50% buff
 		end,
 		unfn = function(inst)
 			inst.modifier_dmg = nil
 		end,
-		rarity = "epic",
+		rarity = "mythic",
 	},
 	fiery = {
 		checkfn = function(inst)
@@ -866,29 +1310,23 @@ GLOBAL.modifier_effects.weapon = {
 		end,
 		rarity = "rare",
 	},
-	telecoward = {
-		fn = function(inst)
-			insertfn(inst, "modifier_wep_fns", effect_telesick)
-		end,
-		unfn = function(inst)
-			removefn(inst, "modifier_wep_fns", effect_telesick)
-		end,
-		rarity = "rare",
-	},
 	ghoststrike = {
 		checkfn = function(inst)
 			return not inst:HasTag("rangedweapon") and not inst.components.weapon.projectile and not inst.components.projectile and not inst.components.complexprojectile and not inst.components.fueled and (inst.components.inventoryitem.owner == nil or inst.components.inventoryitem:GetGrandOwner().prefab ~= "yorha2b_dst_td1madao")
 		end,
 		fn = function(inst)
 			inst.modifier_use = inst.modifier_use == 0 and 0 or 3--uses 3x durability
-			inst.modifier_oldrange = inst.components.weapon.attackrange or 0
-			inst.components.weapon:SetRange(inst.modifier_oldrange + 10)
+			inst.modifier_oldrange = inst.components.weapon.attackrange--may be nil; keep exact original for restore
+			inst.modifier_oldhitrange = inst.components.weapon.hitrange
+			inst.components.weapon:SetRange((inst.modifier_oldrange or 0) + 10)
 			insertfn(inst, "modifier_wep_fns", effect_ghoststrike)
 		end,
 		unfn = function(inst)
 			inst.modifier_use = nil
-			inst.components.weapon:SetRange(inst.modifier_oldrange)
+			inst.components.weapon.attackrange = inst.modifier_oldrange--restore exact originals (SetRange would coerce nil hitrange)
+			inst.components.weapon.hitrange = inst.modifier_oldhitrange
 			inst.modifier_oldrange = nil
+			inst.modifier_oldhitrange = nil
 			removefn(inst, "modifier_wep_fns", effect_ghoststrike)
 		end,
 		rarity = "mythic",
@@ -904,6 +1342,53 @@ GLOBAL.modifier_effects.weapon = {
 			removefn(inst, "modifier_wep_fns", effect_rushing)
 		end,
 		rarity = "rare",
+	},
+	executioner = {
+		checkfn = defaultdmgcheck,
+		fn = function(inst)
+			insertfn(inst, "modifier_wep_fns", effect_executioner)
+		end,
+		unfn = function(inst)
+			removefn(inst, "modifier_wep_fns", effect_executioner)
+		end,
+		rarity = "epic",
+	},
+	duelist = {
+		checkfn = defaultdmgcheck,
+		fn = function(inst)
+			insertfn(inst, "modifier_wep_fns", effect_duelist)
+		end,
+		unfn = function(inst)
+			removefn(inst, "modifier_wep_fns", effect_duelist)
+		end,
+		rarity = "epic",
+	},
+	reaping = {
+		checkfn = defaultdmgcheck,
+		fn = function(inst)
+			insertfn(inst, "modifier_wep_fns", effect_reaping)
+		end,
+		unfn = function(inst)
+			removefn(inst, "modifier_wep_fns", effect_reaping)
+		end,
+		rarity = "legendary",
+	},
+	moonstruck = {
+		checkfn = function(inst)
+			return defaultdmgcheck(inst) and inst.components.planardamage == nil
+		end,
+		fn = function(inst)
+			inst:AddComponent("planardamage")
+			inst:WatchWorldState("isnight", moonstruck_update)--not "phase": the phase watcher fires before worldstate updates isnight, so we'd read the OLD phase's value
+			inst:WatchWorldState("isfullmoon", moonstruck_update)
+			moonstruck_update(inst)
+		end,
+		unfn = function(inst)
+			inst:StopWatchingWorldState("isnight", moonstruck_update)
+			inst:StopWatchingWorldState("isfullmoon", moonstruck_update)
+			inst:RemoveComponent("planardamage")
+		end,
+		rarity = "mythic",
 	},
 	}
 
@@ -924,7 +1409,7 @@ GLOBAL.modifier_effects.instrument = {
 		unfn = function(inst)
 			removefn(inst, "modifier_instrument_fns", effect_sanitysong)	
 		end,
-		rarity = "legendary",
+		rarity = "epic",
 	},
 	revivalsong = {
 		fn = function(inst)
@@ -937,7 +1422,7 @@ GLOBAL.modifier_effects.instrument = {
 	},
 	tauntsong = {
 		checkfn = function(inst)
-			return inst.preafb ~= "panflute"--panflute makes enemies sleep, can't really have taunt+sleep
+			return inst.prefab ~= "panflute"--panflute makes enemies sleep, can't really have taunt+sleep
 		end,
 		fn = function(inst)
 			insertfn(inst, "modifier_instrument_fns", effect_tauntsong)			
@@ -945,7 +1430,45 @@ GLOBAL.modifier_effects.instrument = {
 		unfn = function(inst)
 			removefn(inst, "modifier_instrument_fns", effect_tauntsong)	
 		end,
+		rarity = "rare",
+	},
+	couragesong = {
+		fn = function(inst)
+			insertfn(inst, "modifier_instrument_fns", effect_couragesong)
+		end,
+		unfn = function(inst)
+			removefn(inst, "modifier_instrument_fns", effect_couragesong)
+		end,
 		rarity = "epic",
+	},
+	warmthsong = {
+		fn = function(inst)
+			insertfn(inst, "modifier_instrument_fns", effect_warmthsong)
+		end,
+		unfn = function(inst)
+			removefn(inst, "modifier_instrument_fns", effect_warmthsong)
+		end,
+		rarity = "rare",
+	},
+	hastesong = {
+		fn = function(inst)
+			insertfn(inst, "modifier_instrument_fns", effect_hastesong)
+		end,
+		unfn = function(inst)
+			removefn(inst, "modifier_instrument_fns", effect_hastesong)
+		end,
+		rarity = "epic",
+	},
+	stonesong = {
+		fn = function(inst)
+			inst.modifier_use = 3--a ward this strong wears the instrument 3x faster
+			insertfn(inst, "modifier_instrument_fns", effect_stonesong)
+		end,
+		unfn = function(inst)
+			inst.modifier_use = nil
+			removefn(inst, "modifier_instrument_fns", effect_stonesong)
+		end,
+		rarity = "legendary",
 	},
 }
 
@@ -954,17 +1477,6 @@ GLOBAL.modifier_effects.projectile = {
 		fn = function(inst)
 			inst.oldspeed = inst.components.projectile.speed
 			inst.components.projectile:SetSpeed(inst.oldspeed * 1.5)		
-		end,
-		unfn = function(inst)
-			inst.components.projectile:SetSpeed(inst.oldspeed)
-			inst.oldspeed = nil
-		end,
-		rarity = "rare",
-	},
-	slow_projectile = {
-		fn = function(inst)
-			inst.oldspeed = inst.components.projectile.speed
-			inst.components.projectile:SetSpeed(inst.oldspeed * 0.75)		
 		end,
 		unfn = function(inst)
 			inst.components.projectile:SetSpeed(inst.oldspeed)
@@ -1093,6 +1605,9 @@ GLOBAL.modifier_effects.modifier_cleaner = {
 	},
 	preserver = {
 		rarity = "epic"
+	},
+	gambler = {
+		rarity = "rare"
 	}
 }
 GLOBAL.modifier_effects.equippable = {--ideas: sanity/hunger/temperature effects
@@ -1182,12 +1697,17 @@ GLOBAL.modifier_effects.equippable = {--ideas: sanity/hunger/temperature effects
 		fn = function(inst)
 			inst.components.inventoryitem.keepondeath = true
 			inst:DoTaskInTime(0, function()--delay it so owner is actually assigned if this is ran on start up
-				print(inst.components.inventoryitem.owner)
+				if inst.components.inventoryitem == nil or inst.components.equippable == nil then
+					return
+				end
 				if inst.components.inventoryitem.owner then
 					local slot = inst.components.equippable.equipslot
 					local owner = inst.components.inventoryitem:GetGrandOwner()
+					if owner == nil or owner.components.inventory == nil then
+						return--grand owner is a container (chest / backpack on the ground): stay dormant, bind on next real pickup
+					end
 					inst.boundguy = owner
-					if slot and owner.components.inventory.equipslots[slot] == nil or not owner.components.inventory.equipslots[slot]:HasTag("modifier_soulbound") then
+					if slot and (owner.components.inventory.equipslots[slot] == nil or not owner.components.inventory.equipslots[slot]:HasTag("modifier_soulbound")) then
 						owner.components.inventory:Equip(inst)
 					end
 				end
@@ -1195,18 +1715,6 @@ GLOBAL.modifier_effects.equippable = {--ideas: sanity/hunger/temperature effects
 		end,
 		unfn = function(inst)--does the inventory item tile update to be clickable again? | we shouldn't be able to unfn while equipped so we shouldn't care
 			inst.components.inventoryitem.keepondeath = false
-		end,
-		rarity = "epic",
-	},
-	telesensitive = {
-		checkfn = function(inst)
-			return inst.components.equippable.equipslot ~= GLOBAL.EQUIPSLOTS.HANDS and inst.components.container == nil
-		end,
-		fn = function(inst)
-			insertfn(inst, "modifier_armor_fns", effect_telesick)
-		end,
-		unfn = function(inst)
-			removefn(inst, "modifier_armor_fns", effect_telesick)
 		end,
 		rarity = "epic",
 	},
@@ -1242,6 +1750,85 @@ GLOBAL.modifier_effects.equippable = {--ideas: sanity/hunger/temperature effects
 			return inst.components.equippable.equipslot == GLOBAL.EQUIPSLOTS.HEAD and (inst.components.finiteuses or inst.components.armor or inst.components.perishable or inst.components.fueled)
 		end,
 		rarity = "mythic"
+	},
+	dapper = {
+		checkfn = function(inst)
+			return inst.components.equippable ~= nil and (inst.components.equippable.dapperness or 0) == 0
+		end,
+		fn = function(inst)
+			inst.modifier_dapper_prev = inst.components.equippable.dapperness--may be nil; keep exact original for restore
+			inst.components.equippable.dapperness = GLOBAL.TUNING.DAPPERNESS_SMALL
+		end,
+		unfn = function(inst)
+			if inst.components.equippable then
+				inst.components.equippable.dapperness = inst.modifier_dapper_prev
+			end
+			inst.modifier_dapper_prev = nil
+		end,
+		rarity = "good",
+	},
+	insulating = {
+		checkfn = function(inst)
+			return inst.components.equippable ~= nil and inst.components.insulator == nil
+		end,
+		fn = function(inst)
+			inst:AddComponent("insulator")
+			inst.components.insulator:SetInsulation(GLOBAL.TUNING.INSULATION_SMALL)--60, matches the advertised value
+			inst.components.insulator:SetWinter()
+		end,
+		unfn = function(inst)
+			inst:RemoveComponent("insulator")
+		end,
+		rarity = "rare",
+	},
+	shaded = {
+		checkfn = function(inst)
+			return inst.components.equippable ~= nil and inst.components.insulator == nil
+		end,
+		fn = function(inst)
+			inst:AddComponent("insulator")
+			inst.components.insulator:SetInsulation(GLOBAL.TUNING.INSULATION_SMALL)--60, matches the advertised value
+			inst.components.insulator:SetSummer()
+		end,
+		unfn = function(inst)
+			inst:RemoveComponent("insulator")
+		end,
+		rarity = "rare",
+	},
+	satiating = {
+		fn = function(inst)
+			inst.modifier_satiating_onequipped = function(_, data)
+				local owner = data and data.owner or nil
+				if owner and owner.components.hunger and owner.components.hunger.burnratemodifiers then
+					owner.components.hunger.burnratemodifiers:SetModifier(inst, 0.85, "modifier_satiating")--15% slower hunger drain while worn
+				end
+			end
+			inst.modifier_satiating_onunequipped = function(_, data)
+				local owner = data and data.owner or nil
+				if owner and owner.components.hunger and owner.components.hunger.burnratemodifiers then
+					owner.components.hunger.burnratemodifiers:RemoveModifier(inst, "modifier_satiating")
+				end
+			end
+			inst:ListenForEvent("equipped", inst.modifier_satiating_onequipped)
+			inst:ListenForEvent("unequipped", inst.modifier_satiating_onunequipped)
+			if inst.components.equippable and inst.components.equippable:IsEquipped() and inst.components.inventoryitem and inst.components.inventoryitem.owner then--enchanted while worn
+				inst.modifier_satiating_onequipped(inst, { owner = inst.components.inventoryitem.owner })
+			end
+		end,
+		unfn = function(inst)
+			if inst.modifier_satiating_onequipped then
+				inst:RemoveEventCallback("equipped", inst.modifier_satiating_onequipped)
+			end
+			if inst.modifier_satiating_onunequipped then
+				inst:RemoveEventCallback("unequipped", inst.modifier_satiating_onunequipped)
+				if inst.components.equippable and inst.components.equippable:IsEquipped() and inst.components.inventoryitem and inst.components.inventoryitem.owner then--disenchanted while worn
+					inst.modifier_satiating_onunequipped(inst, { owner = inst.components.inventoryitem.owner })
+				end
+			end
+			inst.modifier_satiating_onequipped = nil
+			inst.modifier_satiating_onunequipped = nil
+		end,
+		rarity = "epic",
 	}
 }
 

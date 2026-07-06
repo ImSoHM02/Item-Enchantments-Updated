@@ -4,6 +4,10 @@ local assets =
 }
 
 local function doloop(inst)
+    if inst.parent == nil then--owner was removed while we were attached: clean up instead of orbiting the origin forever
+        inst:Remove()
+        return
+    end
     local x = inst.radius * math.cos(inst.angle)
     local z = inst.radius * math.sin(inst.angle)
     inst.Transform:SetPosition(x, 1, z)
@@ -36,9 +40,11 @@ local function fn()
         return inst
     end
 
+    inst.persists = false--owner-attached FX; never save (orphans used to pile up at the world origin)
+
     inst.angle = 0
     inst.radius = 1.25
-    inst:DoTaskInTime(0, function() 
+    inst:DoTaskInTime(0, function()
         inst:DoPeriodicTask(0.1, doloop)
     end)
 

@@ -14,14 +14,6 @@ msgstr "I can disenchant items with this but I might lose my item too. I should 
 msgid "Disenchant"
 msgstr "Disenchant"
 
-#: STRINGS.MODIFIER_RARITIES.WORST
-msgid "Worst"
-msgstr "Worst"
-
-#: STRINGS.MODIFIER_RARITIES.BAD
-msgid "Bad"
-msgstr "Bad"
-
 #: STRINGS.MODIFIER_RARITIES.GOOD
 msgid "Good"
 msgstr "好"
@@ -219,8 +211,8 @@ msgid "Razor-sharp"
 msgstr "Razor-sharp"
 
 #: STRINGS.MODIFIERS.SHARPNESS_3.DESC
-msgid "+75% Damage dealt."
-msgstr "+75% Damage dealt."
+msgid "+50% Damage dealt."
+msgstr "+50% Damage dealt."
 
 #: STRINGS.MODIFIERS.SHARPNESS_1.PREFIX
 msgid "Pointy"
@@ -230,14 +222,6 @@ msgstr "Pointy"
 msgid "+10% Damage dealt."
 msgstr "+10% Damage dealt."
 
-#: STRINGS.MODIFIERS.DULNESS_1.PREFIX
-msgid "Dull"
-msgstr "Dull"
-
-#: STRINGS.MODIFIERS.DULNESS_1.DESC
-msgid "-10% Damage dealt."
-msgstr "-10% Damage dealt."
-
 #: STRINGS.MODIFIERS.TELECOWARD.PREFIX
 msgid "Telepoofing"
 msgstr "Telepoofing"
@@ -245,14 +229,6 @@ msgstr "Telepoofing"
 #: STRINGS.MODIFIERS.TELECOWARD.DESC
 msgid "Damage dealt has a chance of randomly teleporting the wearer somewhere close by."
 msgstr "Damage dealt has a chance of randomly teleporting the wearer somewhere close by."
-
-#: STRINGS.MODIFIERS.DULNESS_2.PREFIX
-msgid "Blunt"
-msgstr "Blunt"
-
-#: STRINGS.MODIFIERS.DULNESS_2.DESC
-msgid "-30% Damage dealt."
-msgstr "-30% Damage dealt."
 
 #: STRINGS.MODIFIERS.SHARPNESS_2.PREFIX
 msgid "Sharp"
@@ -302,14 +278,6 @@ msgstr "Efficient"
 msgid "-10% Fuel usage."
 msgstr "-10% Fuel usage."
 
-#: STRINGS.MODIFIERS.INEFFICIENCY_1.PREFIX
-msgid "Inefficient"
-msgstr "Inefficient"
-
-#: STRINGS.MODIFIERS.INEFFICIENCY_1.DESC
-msgid "+10% Fuel usage."
-msgstr "+10% Fuel usage."
-
 #: STRINGS.MODIFIERS.SOLAR.PREFIX
 msgid "Solar"
 msgstr "Solar"
@@ -318,14 +286,6 @@ msgstr "Solar"
 msgid "Natural light slowly refuels the item if it is off and not being carried"
 msgstr "Natural light slowly refuels the item if it is off and not being carried"
 
-#: STRINGS.MODIFIERS.INEFFICIENCY_2.PREFIX
-msgid "Impotent"
-msgstr "Impotent"
-
-#: STRINGS.MODIFIERS.INEFFICIENCY_2.DESC
-msgid "+25% Fuel usage."
-msgstr "+25% Fuel usage."
-
 #: STRINGS.MODIFIERS.EFFICIENCY_2.PREFIX
 msgid "Economical"
 msgstr "Economical"
@@ -333,14 +293,6 @@ msgstr "Economical"
 #: STRINGS.MODIFIERS.EFFICIENCY_2.DESC
 msgid "-25% Fuel usage."
 msgstr "-25% Fuel usage."
-
-#: STRINGS.MODIFIERS.GODLIKE.PREFIX
-msgid "Godlike"
-msgstr "Godlike"
-
-#: STRINGS.MODIFIERS.GODLIKE.DESC
-msgid "Has most positive modifiers all in 1."
-msgstr "Has most positive modifiers all in 1."
 
 #: STRINGS.MODIFIERS.FAST_PROJECTILE.PREFIX
 msgid "Speedy"
@@ -414,14 +366,6 @@ msgstr "Rushing"
 msgid "Damage dealt will cause the attacker to run faster for a short time."
 msgstr "Damage dealt will cause the attacker to run faster for a short time."
 
-#: STRINGS.MODIFIERS.SLOWING.PREFIX
-msgid "Slowing"
-msgstr "Slowing"
-
-#: STRINGS.MODIFIERS.SLOWING.DESC
-msgid "Damage dealt will cause the attacker to run slower for a short time."
-msgstr "Damage dealt will cause the attacker to run slower for a short time."
-
 #: STRINGS.MODIFIERS.ELECTRIC_THORNS.PREFIX
 msgid "Zapping"
 msgstr "Zapping"
@@ -461,14 +405,6 @@ msgstr "Unwithering"
 #: STRINGS.MODIFIERS.UNWITHERING.DESC
 msgid "This backpack's skin does not decay."
 msgstr "This backpack's skin does not decay."
-
-#: STRINGS.MODIFIERS.WITHERED.PREFIX
-msgid "Withered"
-msgstr "Withered"
-
-#: STRINGS.MODIFIERS.WITHERED.DESC
-msgid "This backpack's skin is instantly withered."
-msgstr "This backpack's skin is instantly withered."
 
 #: STRINGS.MODIFIERS.PRESERVER.PREFIX
 msgid "Reallocting"
