@@ -135,9 +135,10 @@ nil,nil,nil,nil,nil,
 
 local actClean = AddAction("MOD_CLEAN", GLOBAL.STRINGS.ACTIONS.MOD_CLEAN, function(act)
 	if act.invobject:HasTag("mod_disenchanter") and act.target:HasTag("modified") then
+		local protected = act.invobject:HasTag("modifier_repairer")--read before Clean, which removes a used-up tape
 		act.invobject.components.modifier_cleaner:Clean(act.target, act.doer)
 
-		if (not act.invobject:HasTag("modifier_repairer") and act.doer.prefab ~= "winona") and math.random() < 0.05 then
+		if (not protected and act.doer.prefab ~= "winona") and math.random() < 0.05 then
 			act.target:Remove()--5% chance of actually losing your item
 		end
 	end

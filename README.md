@@ -4,7 +4,7 @@ A Don't Starve Together mod that lets weapons, armor, tools, clothing, container
 
 ## Highlights
 
-- **60+ enchantments** across nine item categories, each with its own rarity tier.
+- **60+ enchantments** across ten item categories, each with its own rarity tier.
 - **Enchanted bosses**: ordinary creatures can awaken as scaled-up named bosses that reward enchantments on death.
 - **A full enchanting economy**: reclaim enchantments as scrolls, combine scrolls into higher tiers, re-roll gear, and disassemble crafted items for parts.
 - **Placement rules** keep rolls sensible - chop enchants only appear on things that chop, songs only on instruments, and so on.
@@ -24,9 +24,9 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 | Mythic | The chase tier |
 
 **Getting enchanted gear**
-- **Crafting** - with default settings, crafted items have a 40% chance to roll an enchantment (can be disabled with the "Drops & World Only" source filter).
-- **Drops & world items** - creature drops and world-generated items can spawn enchanted.
-- **Bosses** - enchanted bosses reward the killer with an enchantment of the boss's rarity, applied to eligible gear or handed over as an Enchanted Papyrus. Mythic bosses reward every player nearby.
+- **Crafting** - with default settings, crafted items have a 40% chance to roll an enchantment (can be disabled with the "Drops & World Only" source filter). Winona is lucky and rolls higher rarities more often.
+- **Drops & world items** - creature drops have a 25% chance to be enchanted, and items generated with the world always are.
+- **Bosses** - enchanted bosses always reward an Enchanted Papyrus of the boss's rarity to the player they were fighting. Mythic bosses also give every other player within 12 units a 30% chance at one.
 
 **Enchanted Papyrus (scrolls)**
 - **Inscribe**: right-click a scroll onto an item to enchant it at the scroll's rarity. Works on already-enchanted items to re-roll them.
@@ -35,11 +35,11 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 
 **Magic Duct Tape** (craft: 1 Tentacle Spots + 1 Silk, Science II)
 - Right-click it onto enchanted gear to **disenchant**: the enchantment comes back as an Enchanted Papyrus of the same rarity.
-- There's a **5% chance the item is destroyed** in the process (Winona never botches it).
+- There's a **5% chance the item is destroyed** in the process (Winona never botches it, and Enchanted tape removes the risk).
 - The tape itself can be enchanted - see [Magic Duct Tape enchantments](#magic-duct-tape-1).
 
 **Disassembly**
-- While wearing **Tinkerer's** or **Master Tinkerer's** head gear, right-click any crafted item to disassemble it back into its full ingredients (enchanted items also return their scroll). Costs 25% (Tinkerer's) or 10% (Master Tinkerer's) of the head item's durability.
+- While wearing **Tinkerer's** or **Master Tinkerer's** head gear, right-click any crafted item in your inventory (not equipped) to disassemble it back into its full ingredients. Enchanted items also return a papyrus of the same rarity, at both tiers. Costs 25% (Tinkerer's) or 10% (Master Tinkerer's) of the head item's durability.
 
 ## Enchantments
 
@@ -53,16 +53,20 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 | Rushing | Rare | Landing a hit grants +25% movement speed for 5 seconds. |
 | Fiery | Epic | 50% chance per hit to set the target on fire. |
 | Icey | Epic | 50% chance per hit to chill the target - repeated hits freeze it. |
-| Executioner's | Epic | +100% weapon damage against targets below 25% health. |
-| Duelist's | Epic | +35% damage while exactly one enemy is targeting you. |
+| Executioner's | Epic | If your hit leaves the target at or below 25% health, it takes a bonus hit equal to the weapon's base damage. |
+| Duelist's | Epic | Hits deal an extra 35% of the weapon's base damage while exactly one creature within 15 units is targeting you. |
 | Vampiric | Epic | Kills build a streak; hits have a 15% chance to repair the weapon by 1% per kill in the streak. |
 | Lifestealing | Legendary | 25% of hits heal you for a share of your *missing* health - more from large creatures and bosses, nothing from mindless targets. |
-| Reaping | Legendary | Kills have a 15% chance to drop one extra loot roll. |
+| Reaping | Legendary | Kills have a 15% chance to drop one extra item from the creature's loot. |
 | Razor-sharp | Mythic | +50% damage. |
-| Ghost Strike | Mythic | +10 attack range - a spectral double delivers your attacks. 2.5s between strikes, 3× durability drain. Melee only. |
-| Moonstruck | Mythic | +40 planar damage at night, +80 during a full moon. Dormant during the day. |
+| Ghost Strike | Mythic | +10 attack range, with a cosmetic spectral double appearing at the target. 2.5s between strikes, 3× durability drain. Melee only. |
+| Moonstruck | Mythic | +40 planar damage at night, +80 during a full moon. Dormant during the day and at dusk. |
 
 > Damage enchantments (Pointy/Sharp/Razor-sharp) also boost the planar damage of planar weapons, not just their physical damage.
+>
+> On-hit effects trigger once per landed hit. For ranged weapons that's when the projectile hits, and missed swings trigger nothing.
+>
+> Executioner's and Duelist's bonuses use the weapon's base damage, so damage enchants and character multipliers don't raise them.
 
 ### Tools
 
@@ -70,11 +74,11 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 | --- | --- | --- |
 | Feller's | Rare | Chopping does double work per swing. |
 | Prospector's | Rare | Finishing a mining job has a 10% chance to yield a bonus gold nugget or gem. |
-| Resource-hungry | Legendary | Gathering builds a streak; chance to repair the tool based on it. Also rolls on fishing rods. |
+| Resource-hungry | Legendary | Gathering builds a streak; chance to repair the tool based on it. Can also roll on fishing rods, where it does nothing. |
 | Laborer's | Legendary | +1 work per swing (chop, mine, dig, hammer). |
 | Resonant | Mythic | Every 3rd swing echoes, instantly repeating the work for free. |
 
-### Durability (weapons, tools & armor)
+### Durability (anything with durability uses, plus armor)
 
 | Enchantment | Rarity | Effect |
 | --- | --- | --- |
@@ -86,15 +90,15 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 
 | Enchantment | Rarity | Effect |
 | --- | --- | --- |
-| Resistant | Good | 10% less damage taken while worn. |
-| Protective | Rare | 25% less damage taken while worn. |
+| Resistant | Good | 10% less physical damage taken from attacks while worn. |
+| Protective | Rare | 25% less physical damage taken from attacks while worn. |
 | Thorny | Rare | Reflects 10-20% of damage taken back at the attacker (better armor reflects more). |
 | Self-mending | Epic | Repairs itself 1% every 30 seconds while not worn. |
 | Flaming | Legendary | Damage taken has a chance to ignite the attacker. Rarely singes the wearer too. |
 | Freezing | Legendary | Damage taken has a chance to chill the attacker. Rarely chills the wearer too. |
 | Zapping | Legendary | Slowly charges up to 7 orbs. While charging, you take 40% less damage and attackers get struck by lightning and teleported away (consuming an orb). Careless owners who let it fully charge get the discharge themselves! |
 | Lightweight | Legendary | +25% movement speed while worn. |
-| Untouchable | Mythic | Your health can't be damaged while it's worn - blocked damage wears your armor instead. |
+| Untouchable | Mythic | Blocks all physical damage from attacks while worn - blocked damage wears your armor instead. Planar and non-attack damage still get through. |
 | Umbral | Mythic | While your sanity is below 30%, shadow creatures ignore you. |
 
 > Damage-reduction enchantments stack **multiplicatively** across equipped pieces, and the damage they block still wears down your armor.
@@ -106,10 +110,10 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 | Efficient | Good | −10% fuel usage. |
 | Economical | Rare | −25% fuel usage. |
 | Radiant | Rare | +30% light radius while lit. |
-| Warming | Rare | Radiates gentle warmth while lit. |
-| Brisk | Rare | Radiates a pleasant chill while lit. |
+| Warming | Rare | Radiates gentle warmth while lit, on the ground or held or worn. |
+| Brisk | Rare | Radiates a pleasant chill while lit on the ground. Held or worn, it keeps you from overheating. |
 | Solar | Epic | Slowly recharges in daylight - much faster under a full moon - while off and not being carried. |
-| Geothermal | Epic | Slowly refuels while near a fire or other heat source, carried or on the ground. |
+| Geothermal | Epic | Slowly refuels while switched off and near a fire or other heat source, carried or on the ground. |
 
 ### Clothing & Wearables
 
@@ -118,11 +122,11 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 | Dapper | Good | Small sanity boost while worn. |
 | Insulating | Rare | +60 winter insulation while worn. |
 | Shaded | Rare | +60 summer insulation while worn. |
-| Fleet-footed | Rare | Canes only: walking speed is increased even further. |
+| Fleet-footed | Rare | Walking Cane only: +15% more walking speed while held (1.25× becomes 1.40×). |
 | Satiating | Epic | Hunger drains 15% slower while worn. |
 | Loyal | Epic | Bound to you: auto-equips on pickup and stays with you through death. |
-| Tinkerer's | Legendary | Head slot: lets you disassemble crafted items, for a large chunk of this item's durability. |
-| Master Tinkerer's | Mythic | As Tinkerer's, but each disassembly costs only a small chunk of durability. |
+| Tinkerer's | Legendary | Head slot: lets you disassemble crafted items for 25% of this item's durability. Enchanted items return a papyrus. |
+| Master Tinkerer's | Mythic | As Tinkerer's, but each disassembly costs only 10%. Enchanted items still return a papyrus of the same rarity. |
 
 ### Songs (Instruments)
 
@@ -149,7 +153,7 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 | Enchantment | Rarity | Effect |
 | --- | --- | --- |
 | Sub-zero | Rare | Fridges keep food fresh twice as long. |
-| Unwithering | Rare | A skinned backpack's skin never decays. |
+| Unwithering | Rare | A skinned container's skin never decays. |
 | Desiccating | Rare | Drying racks finish in half the time. |
 | Fireproof | Epic | The container can't catch fire. |
 | Chilly | Legendary | The container preserves food like a fridge. |
@@ -167,11 +171,12 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 
 Ordinary creatures around the world can awaken as enchanted bosses:
 
-- Bigger, named, and color-coded by rarity, with a world map indicator.
-- 2× damage, 1.5× health, extended attack range; smaller bosses also attack faster.
-- Optional aura (config toggle) that periodically slows the boss's current target.
+- Bigger, named, and color-coded by rarity, with an off-screen HUD indicator pointing to them.
+- 2× damage, 1.5× health, 1.5× attack range; non-giant bosses also attack faster.
+- Optional aura (config toggle, non-giant bosses only) that slows the boss's current target by 50%, refreshed every 10 seconds.
 - Boss rarity scales with the creature - small critters roll Good, giants can roll Mythic.
-- The killer is always rewarded; Mythic bosses give every nearby player a chance at a reward.
+- The reward is always an Enchanted Papyrus of the boss's rarity. It goes to the boss's combat target when it dies (or that target's player leader), or the nearest player within 12 units if it had no target - not necessarily the killer.
+- Mythic bosses also give every other player within 12 units a 30% chance at a papyrus, and revive a ghost recipient.
 
 ## Configuration
 
@@ -185,7 +190,19 @@ Disabled enchantments stop rolling immediately; gear that already has one simply
 
 ## Changelog
 
-### Version 1.2 - New Enchantments & Balance Pass
+### Version 1.2.1 - Damage Control
+
+**Fixes**
+- Fixed armor enchantments (Resistant, Protective, Untouchable, Thorny, Flaming, Freezing, Zapping) doing nothing since a recent game update changed how attacks deal damage.
+- Fixed a crash in PvP when two players wearing Thorny armor hit each other.
+- Armor Unbreakable now follows the Enable Unbreakable toggle instead of Enable Everlasting.
+- Corrected wrong or outdated descriptions, including Flaming, Freezing, Tinkerer's, Master Tinkerer's, Zapping, Fleet-footed and Everlasting.
+- Warming and Brisk now work while held or worn, not just on the ground.
+- On-hit weapon enchants no longer trigger twice with ranged weapons, or on missed swings.
+- Enchanted Duct Tape now reliably protects the item from being destroyed.
+- Enchanted bosses no longer stack their bonuses on reload, and giants no longer re-roll boss status every load.
+
+### Version 1.2 - Spell Check
 
 **New enchantments**
 - Weapons: Executioner's, Duelist's, Reaping, and Moonstruck (planar damage at night, doubled on full moons).
@@ -208,6 +225,11 @@ Disabled enchantments stop rolling immediately; gear that already has one simply
 
 **Fixes**
 - Flaming/Freezing thorn descriptions no longer hide their small chance of affecting the wearer.
+- Fixed a crash when disassembling an enchanted item while wearing Tinkerer's or Master Tinkerer's gear.
+- Fixed a crash when playing any instrument with a Song enchantment.
+- Fixed a crash when killing a Mythic boss.
+- Fixed crashes when throwing or re-throwing a Hurtful projectile.
+- Fixed enchanted bosses spawning 10× more often than intended.
 
 **Changes**
 - Removed all remaining joke enchants.

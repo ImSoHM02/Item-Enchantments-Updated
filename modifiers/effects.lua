@@ -194,7 +194,7 @@ local function effect_duelist(inst, weapon, target)
 	local dmg = weapon.components.weapon and weapon.components.weapon.damage or nil
 	if type(dmg) ~= "number" or dmg <= 0 then return end
 	local x, y, z = inst.Transform:GetWorldPosition()
-	local ents = TheSim:FindEntities(x, y, z, 15, {"_combat"})
+	local ents = GLOBAL.TheSim:FindEntities(x, y, z, 15, {"_combat"})
 	local threats = 0
 	for i, v in ipairs(ents) do
 		if v ~= inst and v.components.combat and v.components.combat.target == inst then
@@ -336,6 +336,9 @@ local function effect_warming(item, toggled_on)
 		if item.components.heater == nil then
 			item:AddComponent("heater")
 			item.components.heater.heat = 25
+			--held/worn items are INLIMBO, which temperature skips for ground heat; vanilla reads these instead
+			item.components.heater.equippedheat = 25
+			item.components.heater.carriedheat = 25
 			item.modifier_heater_added = true
 		end
 	elseif item.modifier_heater_added then
@@ -350,6 +353,10 @@ local function effect_brisk(item, toggled_on)
 			item:AddComponent("heater")
 			item.components.heater.heat = -10
 			item.components.heater:SetThermics(false, true)--endothermic + negative heat cools, like the cold fire
+			--held/worn heat pulls body temperature toward the value with no falloff, so -10 would freeze you;
+			--40 matches the Ice Cube hat: it only cools you once you're warm
+			item.components.heater.equippedheat = 40
+			item.components.heater.carriedheat = 40
 			item.modifier_heater_added = true
 		end
 	elseif item.modifier_heater_added then
@@ -372,7 +379,7 @@ local function effect_geothermal(item, toggled_on)
 			end
 			if source == nil then return end
 			local x, y, z = source.Transform:GetWorldPosition()
-			for i, v in ipairs(TheSim:FindEntities(x, y, z, 4, {"HASHEATER"})) do
+			for i, v in ipairs(GLOBAL.TheSim:FindEntities(x, y, z, 4, {"HASHEATER"})) do
 				if v ~= item then
 					item.components.fueled:DoDelta(0.02 * item.components.fueled.maxfuel)
 					item:SpawnChild("buff_fx"):anim("positive", { build = "buff_fx", symbol = "repair"})
@@ -412,7 +419,7 @@ end
 
 local function play_song(inst, musician, song)
 	local x, y, z = musician.Transform:GetWorldPosition()
-	local ents = TheSim:FindEntities(x, y, z, inst.components.instrument.range, song.audience, song.haters)
+	local ents = GLOBAL.TheSim:FindEntities(x, y, z, inst.components.instrument.range, song.audience, song.haters)
 	for guid, listener in ipairs(ents) do
 		if not song.sucks or GLOBAL.TheNet:GetPVPEnabled() or not listener:HasTag("player") then--make sure to not help enemy players in pvp
 			if not song.periodic or song.periodic == 0 then
@@ -627,7 +634,7 @@ local function effect_collisionproj_throw(inst, owner, target)
 	inst.mod_collision_targets = {}
 	inst.mod_collision = inst:DoPeriodicTask(0, function() 
 		local x,y,z = inst.Transform:GetWorldPosition()
-		local targets = TheSim:FindEntities(x,y,z, 1, {"_combat"})
+		local targets = GLOBAL.TheSim:FindEntities(x,y,z, 1, {"_combat"})
 		for k,v in pairs(targets) do
 			if v ~= owner and v.components.health and not v.components.health:IsDead() and v.components.combat and (GLOBAL.TheNet:GetPVPEnabled() or not v:HasTag("player")) and not GLOBAL.table.contains(inst.mod_collision_targets, v.GUID) then
 				table.insert(inst.mod_collision_targets, v.GUID)

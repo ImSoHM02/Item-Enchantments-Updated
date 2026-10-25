@@ -48,7 +48,7 @@ STRINGS.MODIFIERS.TAUNTSONG = {
 
 STRINGS.MODIFIERS.SOULBOUND = {
 	PREFIX = "Loyal",
-	DESC = "Item is bound to the user, on pick up, it will be automatically equipped, but unequippable. Kept on death(if equipped)",
+	DESC = "Item is bound to the user, on pick up, it will be automatically equipped and can't be unequipped. Kept on death(if equipped)",
 }
 
 STRINGS.MODIFIERS.TOUGHNESS_1 = {
@@ -58,7 +58,7 @@ STRINGS.MODIFIERS.TOUGHNESS_1 = {
 
 STRINGS.MODIFIERS.RESISTANCE_X = {
 	PREFIX = "Untouchable",
-	DESC = "100% Damage reduction.",
+	DESC = "Blocks all physical damage from attacks.",
 }
 
 STRINGS.MODIFIERS.RESISTANCE_1 = {
@@ -138,7 +138,7 @@ STRINGS.MODIFIERS.SHARPNESS_2 = {
 
 STRINGS.MODIFIERS.GHOSTSTRIKE = {
 	PREFIX = "Ghost Strike",
-	DESC = "Attacking a target will instead create a ghost that does the attack for you (increasing your range).",
+	DESC = "+10 attack range and a ghostly strike effect. 2.5s between attacks, 3x durability use.",
 }
 
 STRINGS.MODIFIERS.LIFESTEAL = {
@@ -193,7 +193,7 @@ STRINGS.MODIFIERS.REPAIRER = {
 
 STRINGS.MODIFIERS.INFINITE = {
 	PREFIX = "Everlasting",
-	DESC = "Infinite Durability."
+	DESC = "This tape is not used up when disenchanting."
 }
 
 STRINGS.MODIFIERS.FREEZER = {
@@ -223,7 +223,7 @@ STRINGS.MODIFIERS.RUSHING = {
 
 STRINGS.MODIFIERS.ELECTRIC_THORNS = {
 	PREFIX = "Zapping",
-	DESC = "Damage dealt will cause the attacker to get hit by lightning and get teleported away. (Only when an orb is present)"
+	DESC = "Charges orbs that cut damage taken by 40%. Getting hit spends one to zap and teleport the attacker. Discharges on you at 7 orbs."
 }
 
 STRINGS.MODIFIERS.FIREPROOF = {
@@ -233,12 +233,12 @@ STRINGS.MODIFIERS.FIREPROOF = {
 
 STRINGS.MODIFIERS.FLEETFOOTED = {
 	PREFIX = "Fleet-footed",
-	DESC = "Cane walking speed is increased even further."
+	DESC = "The Walking Cane gives +15% more walking speed while held."
 }
 
 STRINGS.MODIFIERS.UNWITHERING = {
 	PREFIX = "Unwithering",
-	DESC = "This backpack's skin does not decay."
+	DESC = "This container's skin does not decay."
 }
 
 STRINGS.MODIFIERS.PRESERVER = {
@@ -248,32 +248,32 @@ STRINGS.MODIFIERS.PRESERVER = {
 
 STRINGS.MODIFIERS.MINDASCENDER = {
 	PREFIX = "Tinkerer's",
-	DESC = "While equipped, the wearer can disassemble crafted items for a large portion of this item's durability."
+	DESC = "While equipped, the wearer can disassemble crafted items for 25% of this item's durability. Enchanted items return a papyrus."
 }
 
 STRINGS.MODIFIERS.MINDTRANSCENDER = {
 	PREFIX = "Master Tinkerer's",
-	DESC = "While equipped, the wearer can disassemble crafted items for a small portion of this item's durability. Enchantments are preserved onto other items if any."
+	DESC = "While equipped, the wearer can disassemble crafted items for 10% of this item's durability. Enchanted items return a papyrus of the same rarity."
 }
 
 STRINGS.MODIFIERS.EXECUTIONER = {
 	PREFIX = "Executioner's",
-	DESC = "+100% damage to targets below 25% health.",
+	DESC = "Hits on targets below 25% health deal a bonus hit of the weapon's base damage.",
 }
 
 STRINGS.MODIFIERS.DUELIST = {
 	PREFIX = "Duelist's",
-	DESC = "+35% damage while exactly one enemy is targeting you.",
+	DESC = "+35% of the weapon's base damage while exactly one enemy is targeting you.",
 }
 
 STRINGS.MODIFIERS.REAPING = {
 	PREFIX = "Reaping",
-	DESC = "Kills have a 15% chance to drop an extra loot roll.",
+	DESC = "Kills have a 15% chance to drop one extra item from the creature's loot.",
 }
 
 STRINGS.MODIFIERS.MOONSTRUCK = {
 	PREFIX = "Moonstruck",
-	DESC = "Deals bonus planar damage at night, doubled during a full moon. Dormant during the day.",
+	DESC = "Deals bonus planar damage at night, doubled during a full moon. Dormant by day and dusk.",
 }
 
 STRINGS.MODIFIERS.SELFMENDING = {
@@ -323,7 +323,7 @@ STRINGS.MODIFIERS.BRISK = {
 
 STRINGS.MODIFIERS.GEOTHERMAL = {
 	PREFIX = "Geothermal",
-	DESC = "Slowly refuels while near a fire or other heat source.",
+	DESC = "Slowly refuels while switched off near a fire or other heat source.",
 }
 
 STRINGS.MODIFIERS.DAPPER = {

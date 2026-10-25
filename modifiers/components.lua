@@ -379,12 +379,26 @@ AddComponentPostInit("combat", function(self)
 				planar:AddMultiplier("modifier_dmg", 1 + wep.modifier_dmg, "modifier_dmg")
 			end
 		end
+		--vanilla only stamps lastdoattacktime once an attack actually resolves on the target; misses and
+		--projectile launches return before it, and the projectile's impact calls DoAttack again
+		local prevattacktime = self.lastdoattacktime
+		self.lastdoattacktime = nil
 		local ok, err = GLOBAL.pcall(oldDoAttack, self, target_override, weapon, projectile, stimuli, instancemult, instrangeoverride, instpos)
+		local landed = self.lastdoattacktime ~= nil
+		if not landed then
+			self.lastdoattacktime = prevattacktime
+		end
 		if planar then--always remove, even on error, so the multiplier never leaks onto the weapon
 			planar:RemoveMultiplier("modifier_dmg", "modifier_dmg")
 		end
 		if not ok then
 			GLOBAL.error(err)
+		end
+		if not landed then--on-hit effects run once per real hit
+			return
+		end
+		if projectile and wep == projectile and projectile.modifier_launcher and projectile.modifier_launcher:IsValid() then
+			wep = projectile.modifier_launcher--ammo with its own damage (slingshot, blowpipe) hits as itself; credit the enchanted launcher
 		end
 		if targ and wep and wep.components.modifier and wep.modifier_wep_fns and type(wep.modifier_wep_fns) == "table" then
 			for _each, mod_fn in pairs(wep.modifier_wep_fns) do
@@ -396,8 +410,14 @@ AddComponentPostInit("combat", function(self)
 		end
 	end
 
-	local oldGetAttacked = self.GetAttacked
-	function self:GetAttacked(attacker, damage, weapon, stimuli, spdamage)
+	--current builds route every hit (DoAttack, AOE, redirects, and GetAttacked itself) through GetAttacked_Internal,
+	--so wrap that one only; older builds only have GetAttacked
+	local attackedfnname = self.GetAttacked_Internal ~= nil and "GetAttacked_Internal" or "GetAttacked"
+	local oldGetAttacked = self[attackedfnname]
+	self[attackedfnname] = function(self, attacker, damage, weapon, stimuli, spdamage, ...)
+		if self.redirected_from ~= nil then--redirected (e.g. a rider's hit passed to the mount); the original target already ran our effects
+			return oldGetAttacked(self, attacker, damage, weapon, stimuli, spdamage, ...)
+		end
 		if self.inst.components.inventory and self.inst.components.inventory.equipslots and damage and damage > 0 then --no inventory = no effects, stop here
 			local resistmult = 1
 			for each, equipped in pairs(self.inst.components.inventory.equipslots) do
@@ -411,8 +431,8 @@ AddComponentPostInit("combat", function(self)
 				self.inst.components.inventory:ApplyDamage(olddamage - damage, attacker, weapon)
 			end
 		end
-		local result = oldGetAttacked(self, attacker, damage, weapon, stimuli, spdamage)
-		if result and self.inst.components.inventory and self.inst.components.inventory.equipslots and attacker then --no inventory = no effects, stop here
+		local result = oldGetAttacked(self, attacker, damage, weapon, stimuli, spdamage, ...)--forward from_doattack
+		if result and self.inst.components.inventory and self.inst.components.inventory.equipslots and attacker and attacker ~= self.inst then --no inventory = no effects, stop here; reflected damage arrives as self-damage, so this also stops reflect loops
 			for each, equipped in pairs(self.inst.components.inventory.equipslots) do
 				if equipped and equipped.modifier_reflect_fns and type(equipped.modifier_reflect_fns) == "table" then
 					for _each, mod_fn in pairs(equipped.modifier_reflect_fns) do
@@ -542,6 +562,7 @@ end)
 AddComponentPostInit("projectile", function(self)
 	local oldThrow = self.Throw
 	function self:Throw(owner, target, attacker)
+		self.inst.modifier_launcher = (owner and owner ~= self.inst and owner.components.modifier and owner.components.weapon) and owner or nil--Hit clears self.owner before its DoAttack
 		if self.inst.modifier_throw_fns and type(self.inst.modifier_throw_fns) == "table" then
 			for _each, mod_fn in pairs(self.inst.modifier_throw_fns) do
 				mod_fn(self.inst, owner, target)
@@ -678,7 +699,7 @@ local function onBossDeath(inst)
 		local players = {}
 
 		if inst.rarity == "mythic" then--mythics can drop for anyone nearby
-			players = TheSim:FindEntities(x, y, z, 12, {"player"})
+			players = GLOBAL.TheSim:FindEntities(x, y, z, 12, {"player"})
 		end
 
 		if lootreceiver and not GLOBAL.table.contains(players, lootreceiver) then
@@ -696,7 +717,7 @@ local function onBossDeath(inst)
 end
 
 function GLOBAL.SpawnBoss(inst, rarity)
-	if rarity == nil then return end
+	if rarity == nil or inst == nil or not inst:IsValid() or inst:HasTag("modifier_boss") then return end--stats are multiplied, so never boss-ify twice
 	rarity = rarity and string.lower(rarity) or nil
 	EnsureBossNet(inst)
 	inst:AddTag("modifier_boss")
@@ -752,9 +773,11 @@ function GLOBAL.SpawnBoss(inst, rarity)
 		end)
 	end
 	inst.components.combat:SetDefaultDamage(inst.components.combat.defaultdamage * 2 or 50)--100% more damage
-	local healthpercent = inst.components.health:GetPercent()--SetMaxHealth also refills current health; preserve the loaded value so bosses don't full-heal on every restart
-	inst.components.health:SetMaxHealth(inst.components.health.maxhealth * 1.5)--50% more health
-	inst.components.health:SetPercent(healthpercent)
+	if not inst.modifier_boss_maxhealthloaded then--a few prefabs (e.g. Celestial Champion) save max health, which already includes the boss bonus
+		local healthpercent = inst.components.health:GetPercent()--SetMaxHealth also refills current health; preserve the loaded value so bosses don't full-heal on every restart
+		inst.components.health:SetMaxHealth(inst.components.health.maxhealth * 1.5)--50% more health
+		inst.components.health:SetPercent(healthpercent)
+	end
 	inst.components.combat:SetRange(inst.components.combat.attackrange * 1.5, inst.components.combat.hitrange * 1.5)
 	inst:ListenForEvent("death", onBossDeath)
 	if not inst:HasTag("epic") then
@@ -897,8 +920,13 @@ AddPrefabPostInitAny(function(inst)
 	end
 
 	if inst.sg and inst.components.combat and inst.components.combat.defaultdamage ~= 0 and inst.components.health then
-		if ((GLOBAL.TheWorld.state.cycles == 0 and GLOBAL.TheWorld.state.time < 0.01) or GLOBAL.TheWorld:GetTimeAlive() > 5) and math.random() <= 0.0075 or (inst:HasTag("epic") and math.random() <= 0.1) then--0.75% chance/ epic 10% chance
-			PickBossType(inst, "spawned")
+		--the time gate keeps creatures loaded from a save from re-rolling (giants used to get a fresh 10% on every load)
+		if ((GLOBAL.TheWorld.state.cycles == 0 and GLOBAL.TheWorld.state.time < 0.01) or GLOBAL.TheWorld:GetTimeAlive() > 5) and (math.random() <= 0.0075 or (inst:HasTag("epic") and math.random() <= 0.1)) then--0.75% chance/ epic 10% chance
+			inst:DoTaskInTime(0, function()--next frame, so OnLoad can flag a saved boss first
+				if inst:IsValid() and inst.modifier_savedbossrarity == nil and not inst:HasTag("modifier_boss") then
+					PickBossType(inst, "spawned")
+				end
+			end)
 		end
 		inst.oldOnSave = inst.OnSave
 		inst.oldOnLoad = inst.OnLoad
@@ -911,8 +939,10 @@ AddPrefabPostInitAny(function(inst)
 			end
 		end
 		inst.OnLoad = function(inst, data) 
+			inst.modifier_savedbossrarity = data and data.bossrarity or nil
+			inst.modifier_boss_maxhealthloaded = inst.modifier_savedbossrarity ~= nil and data.health ~= nil and data.health.maxhealth ~= nil
 			inst:DoTaskInTime(0, function()
-				GLOBAL.SpawnBoss(inst, data and data.bossrarity or nil) 
+				GLOBAL.SpawnBoss(inst, inst.modifier_savedbossrarity)--SpawnBoss skips anything that is already a boss
 			end)
 			if inst.oldOnLoad then
 				inst:oldOnLoad(data) 

@@ -1,10 +1,21 @@
 description =
 [[
 
-Version 1.2 - New Enchantments & Balance Pass
+Version 1.2.1 - Damage Control
+Fixes:
+- Fixed armor enchantments (Resistant, Protective, Untouchable, Thorny, Flaming, Freezing, Zapping) doing nothing since a recent game update changed how attacks deal damage.
+- Fixed a crash in PvP when two players wearing Thorny armor hit each other.
+- Armor Unbreakable now follows the Enable Unbreakable toggle instead of Enable Everlasting.
+- Corrected wrong or outdated descriptions, including Flaming, Freezing, Tinkerer's, Master Tinkerer's, Zapping, Fleet-footed and Everlasting.
+- Warming and Brisk now work while held or worn, not just on the ground.
+- On-hit weapon enchants no longer trigger twice with ranged weapons, or on missed swings.
+- Enchanted Duct Tape now reliably protects the item from being destroyed.
+- Enchanted bosses no longer stack their bonuses on reload, and giants no longer re-roll boss status every load.
+
+Version 1.2 - Spell Check
 New enchantments:
-- Weapons: Executioner's, Duelist's, Reaping, and Moonstruck (planar damage at night, doubled on full moons).
-- Armor: Self-mending and Umbral (shadow creatures ignore you below 30% sanity).
+- Weapons: Executioner's, Duelist's, Reaping, and Moonstruck.
+- Armor: Self-mending and Umbral.
 - Tools: Feller's, Prospector's, Laborer's, and Resonant.
 - Fueled gear: Radiant, Warming, Brisk, and Geothermal.
 - Clothing: Dapper, Insulating, Shaded, and Satiating.
@@ -21,6 +32,11 @@ Balance:
 - Reallocating Duct Tape now has a real effect: the reclaimed scroll comes back one rarity higher.
 Fixes:
 - Flaming/Freezing thorn descriptions no longer hide their small chance of affecting the wearer.
+- Fixed a crash when disassembling an enchanted item while wearing Tinkerer's or Master Tinkerer's gear.
+- Fixed a crash when playing any instrument with a Song enchantment.
+- Fixed a crash when killing a Mythic boss.
+- Fixed crashes when throwing or re-throwing a Hurtful projectile.
+- Fixed enchanted bosses spawning 10x more often than intended.
 Changes:
 - Removed all remaining joke enchants.
 
@@ -42,7 +58,7 @@ Added a toggle to change how Enchantments are acquired. "All Sources" is the sam
 
 name                        = "Item Enchantments - Updated"
 author                      = "Im So HM02 (Original by Aquaterion)"
-version                     = "1.2"
+version                     = "1.2.1"
 forumthread                 = ""
 icon                        = "modicon.tex"
 icon_atlas                  = "modicon.xml"
@@ -84,7 +100,7 @@ configuration_options =
     {
         name = "enable_untouchable",
         label = "Enable Untouchable",
-        hover = "100% Damage reduction",
+        hover = "Blocks all physical damage from attacks",
         options = TrueFalse,
         default = true,
     },
@@ -98,7 +114,7 @@ configuration_options =
     {
         name = "enable_ghost_strike",
         label = "Enable Ghost Strike",
-        hover = "Attacking a target will instead create a ghost that does the attack for you (increasing your range)",
+        hover = "+10 attack range and a ghostly strike effect. 2.5s between attacks, 3x durability use",
         options = TrueFalse,
         default = true,
     },
@@ -112,21 +128,21 @@ configuration_options =
     {
         name = "enable_master_tinkerers",
         label = "Enable Master Tinkerer's",
-        hover = "While equipped, the wearer can disassemble crafted items for a small portion of this item's durability. Enchantments are preserved onto other items if any. Enchantments are upgraded",
+        hover = "While equipped, the wearer can disassemble crafted items for 10% of this item's durability. Enchanted items return a papyrus of the same rarity",
         options = TrueFalse,
         default = true,
     },
     {
         name = "enable_freezing",
         label = "Enable Freezing",
-        hover = "Damage taken has a chance to cool the attacker (Doesn't effect wearer in anyway)",
+        hover = "Damage taken has a chance to cool the attacker. Rarely chills the wearer too",
         options = TrueFalse,
         default = true,
     },
     {
         name = "enable_flaming",
         label = "Enable Flaming",
-        hover = "Damage taken has a chance to burn the attacker (Doesn't effect wearer in anyway)",
+        hover = "Damage taken has a chance to burn the attacker. Rarely singes the wearer too",
         options = TrueFalse,
         default = true,
     },
@@ -175,7 +191,7 @@ configuration_options =
     {
         name = "enable_everlasting",
         label = "Enable Everlasting",
-        hover = "Infinite Durability",
+        hover = "Magic Duct Tape is not used up when disenchanting",
         options = TrueFalse,
         default = true,
     },
@@ -203,21 +219,21 @@ configuration_options =
     {
         name = "enable_zapping",
         label = "Enable Zapping",
-        hover = "Damage dealt will cause the attacker to get hit by lightning and get teleported away. (Only when an orb is present)",
+        hover = "Charges orbs that cut damage taken by 40%. Getting hit spends one to zap and teleport the attacker. Discharges on you at 7 orbs",
         options = TrueFalse,
         default = true,
     },
     {
         name = "enable_tinkerers",
         label = "Enable Tinkerer's",
-        hover = "While equipped, the wearer can disassemble crafted items for a large portion of this item's durability",
+        hover = "While equipped, the wearer can disassemble crafted items for 25% of this item's durability. Enchanted items return a papyrus",
         options = TrueFalse,
         default = true,
     },
     {
         name = "enable_loyal",
         label = "Enable Loyal",
-        hover = "Item is bound to the user, on pick up, it will be automatically equipped, but unequippable. Kept on death(if equipped)",
+        hover = "Item is bound to the user, on pick up, it will be automatically equipped and can't be unequipped. Kept on death(if equipped)",
         options = TrueFalse,
         default = true,
     },
@@ -329,7 +345,7 @@ configuration_options =
     {
         name = "enable_unwithering",
         label = "Enable Unwithering",
-        hover = "This backpack's skin does not decay",
+        hover = "This container's skin does not decay",
         options = TrueFalse,
         default = true,
     },
@@ -378,35 +394,35 @@ configuration_options =
     {
         name = "enable_fleetfooted",
         label = "Enable Fleet-footed",
-        hover = "Cane enchantments give an extra burst of walking speed",
+        hover = "The Walking Cane gives +15% more walking speed while held",
         options = TrueFalse,
         default = true,
     },
     {
         name = "enable_executioners",
         label = "Enable Executioner's",
-        hover = "+100% damage to targets below 25% health",
+        hover = "Hits on targets below 25% health deal a bonus hit of the weapon's base damage",
         options = TrueFalse,
         default = true,
     },
     {
         name = "enable_duelists",
         label = "Enable Duelist's",
-        hover = "+35% damage while exactly one enemy is targeting you",
+        hover = "+35% of the weapon's base damage while exactly one enemy is targeting you",
         options = TrueFalse,
         default = true,
     },
     {
         name = "enable_reaping",
         label = "Enable Reaping",
-        hover = "Kills have a 15% chance to drop an extra loot roll",
+        hover = "Kills have a 15% chance to drop one extra item from the creature's loot",
         options = TrueFalse,
         default = true,
     },
     {
         name = "enable_moonstruck",
         label = "Enable Moonstruck",
-        hover = "Deals bonus planar damage at night, doubled during a full moon",
+        hover = "Deals bonus planar damage at night, doubled during a full moon. Dormant by day and dusk",
         options = TrueFalse,
         default = true,
     },
@@ -476,7 +492,7 @@ configuration_options =
     {
         name = "enable_geothermal",
         label = "Enable Geothermal",
-        hover = "Slowly refuels while near a fire or other heat source",
+        hover = "Slowly refuels while switched off near a fire or other heat source",
         options = TrueFalse,
         default = true,
     },
@@ -547,7 +563,7 @@ configuration_options =
     {
         name = "enable_boss_slowing",
         label = "Enable Boss Player Slowing",
-        hover = "Bosses slow players by 50% every 10 seconds during combat",
+        hover = "Non-giant bosses slow their target by 50% every 10 seconds during combat",
         options = TrueFalse,
         default = true,
     },

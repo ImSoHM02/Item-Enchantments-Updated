@@ -24,7 +24,7 @@ local CONFIG_MAP = {
         -- Armor enchantments
         ["toughness_1"] = "MODIFIER_ENABLE_STEADY",
         ["toughness_2"] = "MODIFIER_ENABLE_STURDY",
-        ["toughness_x"] = "MODIFIER_ENABLE_EVERLASTING",
+        ["toughness_x"] = "MODIFIER_ENABLE_UNBREAKABLE",
         ["resistance_1"] = "MODIFIER_ENABLE_RESISTANT",
         ["resistance_2"] = "MODIFIER_ENABLE_PROTECTIVE",
         ["resistance_x"] = "MODIFIER_ENABLE_UNTOUCHABLE",
