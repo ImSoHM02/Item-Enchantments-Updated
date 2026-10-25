@@ -28,8 +28,11 @@ local function fn()
     inst.components.inspectable.descriptionfn = function(inst)
         local scroll = inst.components.modifier_scroll
         local rarity = scroll and scroll:GetReadableRarity() or nil
+        local enchant = scroll and scroll:GetReadableEnchant() or nil
         local suffix = (scroll and scroll:IsInfinite()) and " It looks inexhaustible." or ""
-        if rarity then
+        if rarity and enchant then
+            return "It holds a " .. rarity .. " enchantment: " .. enchant .. "." .. suffix
+        elseif rarity then
             return "It hums with a " .. rarity .. " enchantment." .. suffix
         end
         return "It hums with latent magic." .. suffix

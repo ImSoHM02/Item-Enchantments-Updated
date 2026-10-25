@@ -5,15 +5,16 @@ local Cleaner = Class(function(self, inst)
     self.inst:AddTag("mod_disenchanter")
 end)
 
-local NEXT_RARITY = { good = "rare", rare = "epic", epic = "legendary", legendary = "mythic" }
-
-local function GiveScroll(target, rarity)
+local function GiveScroll(target, rarity, enchant)
     if target == nil or rarity == nil then
         return
     end
     local scroll = SpawnPrefab("enchantedpapyrus")
     if scroll and scroll.components.modifier_scroll then
         scroll.components.modifier_scroll:SetRarity(rarity)
+        if enchant then
+            scroll.components.modifier_scroll:SetEnchant(enchant)
+        end
         if target.components and target.components.inventory and target.components.inventory:GiveItem(scroll) then
             return
         end
@@ -41,9 +42,7 @@ function Cleaner:Clean(mod_item, cleaner)
         end
         local mod_item_rarity = mod_item.components.modifier:GetRarity()
         local rarity_for_scroll = mod_item_rarity
-        if self.inst:HasTag("modifier_preserver") and rarity_for_scroll then--Reallocating: the reclaimed scroll comes back one rarity higher (mythic stays mythic)
-            rarity_for_scroll = NEXT_RARITY[string.lower(rarity_for_scroll)] or rarity_for_scroll
-        end
+        local enchant_for_scroll = self.inst:HasTag("modifier_preserver") and mod_item.components.modifier.mod_name or nil--Reallocating: the scroll keeps the exact enchant so it can be moved to another item
         mod_item.components.modifier:Remove()
         if self.inst:HasTag("modifier_repairer") then
             local components = { "finiteuses", "perishable", "armor", "fueled"}
@@ -60,7 +59,7 @@ function Cleaner:Clean(mod_item, cleaner)
             end
         end
         if rarity_for_scroll then
-            GiveScroll(cleaner or mod_item, rarity_for_scroll)
+            GiveScroll(cleaner or mod_item, rarity_for_scroll, enchant_for_scroll)
         end
         if not self.inst:HasTag("modified") or not self.inst:HasTag("modifier_infinite") then
             self.inst:Remove()

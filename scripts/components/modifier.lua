@@ -93,6 +93,11 @@ local function GetEnchantmentConfigKey(modname)
     return CONFIG_MAP[modname]
 end
 
+function IsModifierEnabled(modname)--false only when the enchant's config toggle is switched off
+    local config_key = GetEnchantmentConfigKey(modname)
+    return not (config_key and TUNING[config_key] == false)
+end
+
 local function PlacementAllowed(inst, modname)
     local fn = rawget(_G, "ModifierEnchantAllowed")--categories/include/exclude from modifiers/enchant_list.lua; allow everything if that file isn't loaded
     return fn == nil or fn(inst, modname)

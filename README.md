@@ -31,6 +31,7 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 **Enchanted Papyrus (scrolls)**
 - **Inscribe**: right-click a scroll onto an item to enchant it at the scroll's rarity. Works on already-enchanted items to re-roll them.
 - **Combine**: merge two scrolls of the same rarity into one of the next tier.
+- **Reallocated scrolls** (from Reallocating tape) hold one exact enchantment, shown in the scroll's name. They can only be inscribed onto items that enchantment can roll on, and can't be combined.
 - Scrolls come from boss kills, disenchanting, and disassembling enchanted gear.
 
 **Magic Duct Tape** (craft: 1 Tentacle Spots + 1 Silk, Science II)
@@ -164,7 +165,7 @@ Every item holds **one** enchantment at a time, at one of five rarities:
 | --- | --- | --- |
 | Gambler's | Rare | Disenchanting instead re-rolls the enchantment at the same rarity. The 5% destruction risk still applies - that's the gamble. |
 | Enchanted | Epic | Disenchanting also fully repairs the item, and removes the destruction risk. |
-| Reallocating | Epic | The reclaimed scroll comes back one rarity **higher** than the removed enchantment. |
+| Reallocating | Epic | The reclaimed scroll keeps the **exact** enchantment, so you can inscribe it onto another item that enchantment can roll on. |
 | Everlasting | Legendary | The tape survives being used. |
 
 ## Enchanted Bosses
@@ -189,6 +190,11 @@ All options live in the in-game mod configuration screen:
 Disabled enchantments stop rolling immediately; gear that already has one simply loses it on load.
 
 ## Changelog
+
+### Version 1.2.2 - Exact Change
+
+**Changes**
+- Reallocating Duct Tape now saves the exact enchantment on the scroll, so you can move it to another item. It no longer raises the scroll's rarity.
 
 ### Version 1.2.1 - Damage Control
 

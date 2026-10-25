@@ -254,6 +254,9 @@ local actCombineScroll = AddAction("MOD_COMBINE_SCROLL", GLOBAL.STRINGS.ACTIONS.
 	if act.invobject:HasTag("modifier_scroll_infinite") or act.target:HasTag("modifier_scroll_infinite") then--debug scrolls can't be combined into real next-tier scrolls
 		return false
 	end
+	if act.invobject:HasTag("modifier_scroll_bound") or act.target:HasTag("modifier_scroll_bound") then--Reallocating scrolls hold a specific enchant; combining would silently throw it away
+		return false
+	end
 	local scroll_a = act.invobject.components.modifier_scroll
 	local scroll_b = act.target.components.modifier_scroll
 	if scroll_a == nil or scroll_b == nil then
@@ -315,7 +318,7 @@ AddComponentAction("USEITEM", "modifier_scroll", function(inst, doer, target, ac
 		return
 	end
 
-	if target ~= inst and target:HasTag("modifier_scroll_item") and not inst:HasTag("modifier_scroll_infinite") and not target:HasTag("modifier_scroll_infinite") and target.replica and target.replica.modifier_scroll and inst.replica and inst.replica.modifier_scroll then
+	if target ~= inst and target:HasTag("modifier_scroll_item") and not inst:HasTag("modifier_scroll_infinite") and not target:HasTag("modifier_scroll_infinite") and not inst:HasTag("modifier_scroll_bound") and not target:HasTag("modifier_scroll_bound") and target.replica and target.replica.modifier_scroll and inst.replica and inst.replica.modifier_scroll then
 		local r1 = inst.replica.modifier_scroll:GetRarity()
 		local r2 = target.replica.modifier_scroll:GetRarity()
 		if r1 ~= nil and r2 ~= nil and string.lower(r1) == string.lower(r2) and NextRarity(string.lower(r1)) ~= nil then

@@ -1,6 +1,10 @@
 description =
 [[
 
+Version 1.2.2 - Exact Change
+Changes:
+- Reallocating Duct Tape now saves the exact enchantment on the scroll, so you can move it to another item. It no longer raises the scroll's rarity.
+
 Version 1.2.1 - Damage Control
 Fixes:
 - Fixed armor enchantments (Resistant, Protective, Untouchable, Thorny, Flaming, Freezing, Zapping) doing nothing since a recent game update changed how attacks deal damage.
@@ -58,7 +62,7 @@ Added a toggle to change how Enchantments are acquired. "All Sources" is the sam
 
 name                        = "Item Enchantments - Updated"
 author                      = "Im So HM02 (Original by Aquaterion)"
-version                     = "1.2.1"
+version                     = "1.2.2"
 forumthread                 = ""
 icon                        = "modicon.tex"
 icon_atlas                  = "modicon.xml"
@@ -296,7 +300,7 @@ configuration_options =
     {
         name = "enable_reallocating",
         label = "Enable Reallocating",
-        hover = "Disenchanting returns a scroll one rarity higher than the removed enchantment",
+        hover = "Disenchanting saves the exact enchantment on the scroll, ready to inscribe onto another item",
         options = TrueFalse,
         default = true,
     },

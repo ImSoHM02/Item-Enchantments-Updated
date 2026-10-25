@@ -10,17 +10,18 @@ end
 local Scroll = Class(function(self, inst)
     self.inst = inst
     self.rarity = net_string(inst.GUID, "mod.scrollrarity", "modifier_scroll_dirty")
+    self.enchant = net_string(inst.GUID, "mod.scrollenchant", "modifier_scroll_dirty")
 
     inst:ListenForEvent("modifier_scroll_dirty", function()
-        local rarity_label = self:GetReadableRarity()
+        local label = self:GetReadableEnchant() or self:GetReadableRarity()
         if not self.ranonce then
             self.inst.oldDisplayFn = self.inst.displaynamefn
             self.ranonce = true
         end
         self.inst.displaynamefn = function(inst)
             local base = STRINGS.NAMES.ENCHANTEDPAPYRUS or STRINGS.NAMES[string.upper(inst.prefab)] or "Enchanted Papyrus"
-            if rarity_label ~= nil and rarity_label ~= "" then
-                return base .. " (" .. rarity_label .. ")"
+            if label ~= nil and label ~= "" then
+                return base .. " (" .. label .. ")"
             end
             return base
         end
@@ -31,11 +32,23 @@ function Scroll:SetRarity(rarity)
     self.rarity:set(rarity or "")
 end
 
+function Scroll:SetEnchant(name)
+    self.enchant:set(name or "")
+end
+
 function Scroll:GetRarity()
     if self.inst.components and self.inst.components.modifier_scroll ~= nil then
         return self.inst.components.modifier_scroll:GetRarity()
     end
     local val = self.rarity:value()
+    return val ~= "" and val or nil
+end
+
+function Scroll:GetEnchant()
+    if self.inst.components and self.inst.components.modifier_scroll ~= nil then
+        return self.inst.components.modifier_scroll:GetEnchant()
+    end
+    local val = self.enchant:value()
     return val ~= "" and val or nil
 end
 
@@ -45,6 +58,15 @@ function Scroll:GetReadableRarity()
         return nil
     end
     return STRINGS.MODIFIER_RARITIES[string.upper(rarity)] or rarity
+end
+
+function Scroll:GetReadableEnchant()
+    local name = self:GetEnchant()
+    if name == nil then
+        return nil
+    end
+    local entry = STRINGS.MODIFIERS and STRINGS.MODIFIERS[string.upper(name)]
+    return entry and entry.PREFIX or name
 end
 
 return Scroll

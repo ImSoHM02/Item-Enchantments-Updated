@@ -7,6 +7,9 @@ GLOBAL.STRINGS.CHARACTERS.GENERIC.DESCRIBE.MOD_CLEANER = "I can disenchant items
 GLOBAL.STRINGS.ACTIONS.MOD_CLEAN = "Disenchant"
 GLOBAL.STRINGS.ACTIONS.MOD_DISASSEMBLE = "Disassemble"
 GLOBAL.STRINGS.ACTIONS.MOD_APPLY_SCROLL = "Inscribe"
+GLOBAL.STRINGS.CHARACTERS.GENERIC.ACTIONFAIL.MOD_APPLY_SCROLL = {
+	WRONGITEM = "That enchantment won't take on this.",
+}
 
 GLOBAL.STRINGS.NAMES.ENCHANTEDPAPYRUS = "Enchanted Papyrus"
 GLOBAL.STRINGS.CHARACTERS.GENERIC.DESCRIBE.ENCHANTEDPAPYRUS = "It remembers an enchantment for later."
@@ -243,7 +246,7 @@ STRINGS.MODIFIERS.UNWITHERING = {
 
 STRINGS.MODIFIERS.PRESERVER = {
 	PREFIX = "Reallocating",
-	DESC = "Disenchanting returns a scroll one rarity higher than the removed enchantment."
+	DESC = "Disenchanting saves the exact enchantment on the scroll, ready to inscribe onto another item."
 }
 
 STRINGS.MODIFIERS.MINDASCENDER = {
